@@ -9,17 +9,32 @@ Created on January 26th, 2020
 This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.04 LTS machine
 """
 
+#################################
+# Main File
+#################################
+
+# ############# import libraries
+# General Modules
+
+# Customized Modules
+from config import Mode
+from expert import expert_policy
+from inverserl import inverse_rl
+from deeprl import deep_rl
+
 
 def main():
-    print("Hello")
+    print(" ..... Running:")
+    print("UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)")
 
 
 if __name__ == "__main__":
-    if Mode  "Expert":
-        expert()
-    elif Mode is "IRL":
+    if Mode == "Expert":
+        main()
+        expert_policy()
+    elif Mode == "IRL":
         inverse_rl()
-    elif Mode is "DRL":
+    elif Mode == "DRL":
         deep_rl()
     else:
         print("Mode is not correct")
