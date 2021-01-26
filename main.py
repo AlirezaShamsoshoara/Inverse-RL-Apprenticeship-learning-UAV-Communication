@@ -9,4 +9,17 @@ Created on January 26th, 2020
 This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.04 LTS machine
 """
 
-print("Hello")
+
+def main():
+    print("Hello")
+
+
+if __name__ == "__main__":
+    if Mode  "Expert":
+        expert()
+    elif Mode is "IRL":
+        inverse_rl()
+    elif Mode is "DRL":
+        deep_rl()
+    else:
+        print("Mode is not correct")
