@@ -21,11 +21,13 @@ from config import Mode
 from deeprl import deep_rl
 from expert import expert_policy
 from inverserl import inverse_rl
+from location import plothexagon
 
 
 def main():
     print(" ..... Running:")
     print("UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)")
+    plothexagon()
 
 
 if __name__ == "__main__":
