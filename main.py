@@ -18,9 +18,9 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 
 # Customized Modules
 from config import Mode
+from deeprl import deep_rl
 from expert import expert_policy
 from inverserl import inverse_rl
-from deeprl import deep_rl
 
 
 def main():

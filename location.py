@@ -1,18 +1,21 @@
 """
 #################################
-# Inverse Reinforcement Learning
+# Location and allocation functions and modules
 #################################
 """
 
 #########################################################
 # import libraries
+import numpy as np
 
 #########################################################
 # General Parameters
 
 #########################################################
-# Function definition
+# Function and definition
 
 
-def inverse_rl():
-    pass
+class Cell:
+
+    def __init__(self, x_loc, y_loc, num_ues, uid):
+        pass

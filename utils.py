@@ -1,6 +1,6 @@
 """
 #################################
-# Inverse Reinforcement Learning
+# Utility functions
 #################################
 """
 
@@ -12,7 +12,3 @@
 
 #########################################################
 # Function definition
-
-
-def inverse_rl():
-    pass

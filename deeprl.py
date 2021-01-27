@@ -11,7 +11,7 @@
 # General Parameters
 
 #########################################################
-# # Function definition
+# Function definition
 
 
 def deep_rl():
