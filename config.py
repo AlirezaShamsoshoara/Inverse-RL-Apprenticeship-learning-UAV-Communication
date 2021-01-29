@@ -7,7 +7,7 @@
 Mode = 'Expert'
 # Different Modes {"Expert", "IRL", "DRL", "ResultsIRL", "ResultsDRL"}
 
-Config_General = {'NUM_UAV': 1, 'Size': 3, 'NUM_CELLS': 9, 'NUM_UEs': 30}
+Config_General = {'NUM_UAV': 1, 'Size': 3, 'NUM_CELLS': 25, 'NUM_UEs': 30, 'Radius': 10}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
 Config_Power = {'Transmission_Power': 10}  # 10mW
 
