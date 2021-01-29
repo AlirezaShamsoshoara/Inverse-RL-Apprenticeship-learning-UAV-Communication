@@ -25,11 +25,16 @@ def plothexagon():
                              orientation=np.float(np.radians(30)))
     ax.add_patch(hexagon)
 
-    hex_centers, _ = create_hex_grid(nx=5,
-                                     ny=5,
-                                     do_plot=True)
-    ax.set_xlim([-1, 1])
-    ax.set_ylim([-1, 1])
+    hexagon = RegularPolygon((1, 1), numVertices=6, radius=1, edgecolor='k', facecolor='g', alpha=0.3,
+                             orientation=np.float(np.radians(30)))
+    ax.add_patch(hexagon)
+
+    hex_centers, _ = create_hex_grid(n=40,
+                                     do_plot=True,
+                                     rotate_deg=30.0,
+                                     face_color=[0, 0.6, 0.4])
+    ax.set_xlim([-1, 3])
+    ax.set_ylim([-1, 3])
     plt.show()
 
 
