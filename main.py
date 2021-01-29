@@ -27,7 +27,7 @@ from location import plothexagon
 def main():
     print(" ..... Running:")
     print("UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)")
-    plothexagon()
+    v_coord, h_coord, cell_ids, fig_cells, ax_cells = plothexagon()
 
 
 if __name__ == "__main__":
