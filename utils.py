@@ -104,4 +104,8 @@ class UE:
     def get_ue_id(self):
         return self.ue_id
 
-    def_
+    def get_cell_id(self):
+        return self.cell_id
+
+    def get_power(self):
+        return self.power
