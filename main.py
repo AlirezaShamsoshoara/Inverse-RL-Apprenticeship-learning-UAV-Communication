@@ -43,5 +43,11 @@ if __name__ == "__main__":
         deep_rl()
     elif Mode == "QRL":
         q_rl()
+    elif Mode == "ResultsIRL":
+        pass
+    elif Mode == "ResultsDRL":
+        pass
+    elif Mode == "ResultsQRL":
+        pass
     else:
         print("Mode is not correct")
