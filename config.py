@@ -9,8 +9,10 @@ Mode = 'Expert'
 
 Config_General = {'NUM_UAV': 1, 'Size': 3, 'NUM_CELLS': 25, 'NUM_UEs': 30, 'Radius': 10}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
-Config_Power = {'Transmission_Power': 10}  # 10mW
+Config_Power = {'UE_Tr_power': 10, 'UAV_Tr_power': [10, 20, 40, 50, 80, 100], 'UAV_init_energy': 400,
+                'UAV_mobility_consumption': 10}  # Tr power: mW, Energy, Jule
 
+Config_QRL = {}
 Config_IRL = {}
 Config_DRL = {}
 

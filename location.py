@@ -6,16 +6,18 @@
 
 #########################################################
 # import libraries
-from config import Config_General
+import numpy as np
 import matplotlib.pyplot as plt
+from config import Config_General
 from hexalattice.hexalattice import *
 from matplotlib.patches import RegularPolygon
-import numpy as np
+
 
 #########################################################
 # General Parameters
 radius = Config_General.get('Radius')
 cells = Config_General.get('NUM_CELLS')
+num_ues = Config_General.get('NUM_UEs')
 
 #########################################################
 # Function and definition
@@ -46,14 +48,14 @@ def plothexagon():
     #                                  rotate_deg=30.0,
     #                                  face_color=[0, 0.6, 0.4])
     ax_cells.scatter(hcoord, vcoord, color='b', alpha=0.5)
-    ax_cells.set_xlim([min(hcoord) - 2*radius, max(hcoord) + 2*radius])
-    ax_cells.set_ylim([min(vcoord) - 2*radius, max(vcoord) + 2*radius])
+    ax_cells.patches[0].set_color('r')
+    ax_cells.patches[cells-1].set_color('r')
+    ax_cells.set_xlim([min(hcoord) - 2 * radius, max(hcoord) + 2 * radius])
+    ax_cells.set_ylim([min(vcoord) - 2 * radius, max(vcoord) + 2 * radius])
     ax_cells.grid(True)
     plt.show()
     return vcoord, hcoord, cell_ids, fig_cells, ax_cells
 
 
-class Cell:
-
-    def __init__(self, x_loc, y_loc, num_ues, uid):
-        pass
+def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
+    pass

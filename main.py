@@ -19,6 +19,7 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 # Customized Modules
 from config import Mode
 from deeprl import deep_rl
+from config import Config_Power
 from expert import expert_policy
 from inverserl import inverse_rl
 from location import plothexagon
@@ -27,7 +28,8 @@ from location import plothexagon
 def main():
     print(" ..... Running:")
     print("UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)")
-    v_coord, h_coord, cell_ids, fig_cells, ax_cells = plothexagon()
+    v_coord_cells, h_coord_cells, cell_ids, fig_cells, ax_cells = plothexagon()
+    print("UAV Transmit Power Options: ", Config_Power.get('UAV_Tr_power'))
 
 
 if __name__ == "__main__":
