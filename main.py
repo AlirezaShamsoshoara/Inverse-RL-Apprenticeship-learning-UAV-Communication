@@ -17,6 +17,7 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 # General Modules
 
 # Customized Modules
+from qrl import q_rl
 from config import Mode
 from deeprl import deep_rl
 from config import Config_Power
@@ -40,5 +41,7 @@ if __name__ == "__main__":
         inverse_rl()
     elif Mode == "DRL":
         deep_rl()
+    elif Mode == "QRL":
+        q_rl()
     else:
         print("Mode is not correct")

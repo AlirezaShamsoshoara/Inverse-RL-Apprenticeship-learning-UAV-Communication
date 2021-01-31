@@ -5,7 +5,7 @@
 """
 
 Mode = 'Expert'
-# Different Modes {"Expert", "IRL", "DRL", "ResultsIRL", "ResultsDRL"}
+# Different Modes {"Expert", "IRL", "DRL", "QRL", "ResultsIRL", "ResultsDRL", "ResultsQRL"}
 
 Config_General = {'NUM_UAV': 1, 'Size': 3, 'NUM_CELLS': 25, 'NUM_UEs': 30, 'Radius': 10}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
