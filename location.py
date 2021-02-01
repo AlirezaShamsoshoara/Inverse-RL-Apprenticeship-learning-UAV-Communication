@@ -18,6 +18,7 @@ from matplotlib.patches import RegularPolygon
 radius = Config_General.get('Radius')
 cells = Config_General.get('NUM_CELLS')
 num_ues = Config_General.get('NUM_UEs')
+loc_delta = Config_General.get('Loc_delta')
 
 #########################################################
 # Function and definition
@@ -47,15 +48,29 @@ def plothexagon():
     #                                  do_plot=True,
     #                                  rotate_deg=30.0,
     #                                  face_color=[0, 0.6, 0.4])
-    ax_cells.scatter(hcoord, vcoord, color='b', alpha=0.5)
+    ax_cells.scatter(hcoord, vcoord, color='b', alpha=0.5, marker='^', s=50)
     ax_cells.patches[0].set_color('r')
     ax_cells.patches[cells-1].set_color('r')
     ax_cells.set_xlim([min(hcoord) - 2 * radius, max(hcoord) + 2 * radius])
     ax_cells.set_ylim([min(vcoord) - 2 * radius, max(vcoord) + 2 * radius])
     ax_cells.grid(True)
-    plt.show()
+    # plt.show(block=False)
     return vcoord, hcoord, cell_ids, fig_cells, ax_cells
 
 
 def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
-    pass
+    x_coord_ues = np.zeros([num_ues], dtype=float)
+    y_coord_ues = np.zeros([num_ues], dtype=float)
+    x_coord_ues[0], y_coord_ues[0] = hcoord[1] - 3 * loc_delta, vcoord[1] + 0 * loc_delta
+    x_coord_ues[1], y_coord_ues[1] = hcoord[1] + 0 * loc_delta, vcoord[1] + 3 * loc_delta
+
+    x_coord_ues[2], y_coord_ues[2] = hcoord[2] - 2 * loc_delta, vcoord[2] - 2 * loc_delta
+    x_coord_ues[3], y_coord_ues[3] = hcoord[2] - 0 * loc_delta, vcoord[2] + 2 * loc_delta
+
+    x_coord_ues[4], y_coord_ues[4] = hcoord[3] - 1 * loc_delta, vcoord[3] - 3 * loc_delta
+    x_coord_ues[5], y_coord_ues[5] = hcoord[3] + 1 * loc_delta, vcoord[3] + 3 * loc_delta
+
+    ax_cells.scatter(x_coord_ues[:], y_coord_ues[:], color='m', edgecolors='none', marker='o')
+    # ax_cells.scatter(x_coord_ues, y_coord_ues, color='m', alpha=0.01)
+    plt.show(block=True)
+    return fig_cells, ax_cells

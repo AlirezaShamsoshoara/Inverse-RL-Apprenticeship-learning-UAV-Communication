@@ -20,6 +20,7 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 from qrl import q_rl
 from config import Mode
 from deeprl import deep_rl
+from location import plotues
 from config import Config_Power
 from expert import expert_policy
 from inverserl import inverse_rl
@@ -30,7 +31,7 @@ def main():
     print(" ..... Running:")
     print("UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)")
     v_coord_cells, h_coord_cells, cell_ids, fig_cells, ax_cells = plothexagon()
-    print("UAV Transmit Power Options: ", Config_Power.get('UAV_Tr_power'))
+    fig_ues, ax_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
 
 
 if __name__ == "__main__":
