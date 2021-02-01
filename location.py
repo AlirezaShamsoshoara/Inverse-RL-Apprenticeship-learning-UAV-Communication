@@ -55,20 +55,21 @@ def plothexagon():
     ax_cells.set_ylim([min(vcoord) - 2 * radius, max(vcoord) + 2 * radius])
     ax_cells.grid(True)
     # plt.show(block=False)
-    return vcoord, hcoord, cell_ids, fig_cells, ax_cells
+    return np.array(vcoord), np.array(hcoord), cell_ids, fig_cells, ax_cells
 
 
 def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
     x_coord_ues, y_coord_ues = geo_data_75ues_25cells(hcoord, vcoord)
     ax_cells.scatter(x_coord_ues[:], y_coord_ues[:], color='m', edgecolors='none', marker='o')
     # ax_cells.scatter(x_coord_ues, y_coord_ues, color='m', alpha=0.01)
-    plt.show(block=True)
-    return fig_cells, ax_cells
+    plt.show(block=False)
+    return fig_cells, ax_cells, x_coord_ues, y_coord_ues
 
 
 def geo_data_75ues_25cells(hcoord, vcoord):
     x_coord_ues = np.zeros([num_ues], dtype=float)
     y_coord_ues = np.zeros([num_ues], dtype=float)
+
     x_coord_ues[0], y_coord_ues[0] = hcoord[1] - 3 * loc_delta, vcoord[1] + 0 * loc_delta
     x_coord_ues[1], y_coord_ues[1] = hcoord[1] + 0 * loc_delta, vcoord[1] + 3 * loc_delta
 
