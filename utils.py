@@ -73,6 +73,18 @@ class UAV:
     def get_tr_power(self):
         return self.power
 
+    def send_pkt(self):
+        pass
+
+    def calc_throughput(self):
+        pass
+
+    def calc_interference(self):
+        pass
+
+    def calc_snir(self):
+        pass
+
 
 class UE:
 
@@ -109,3 +121,6 @@ class UE:
 
     def get_power(self):
         return self.power
+
+    def calc_interference(self):
+        pass
