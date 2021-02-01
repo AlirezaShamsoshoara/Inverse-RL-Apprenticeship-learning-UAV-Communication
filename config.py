@@ -7,6 +7,8 @@
 Mode = 'Expert'
 # Different Modes {"Expert", "IRL", "DRL", "QRL", "ResultsIRL", "ResultsDRL", "ResultsQRL"}
 
+# Possible number of UEs: 75
+# Possible number of Cells: 25
 Config_General = {'NUM_UAV': 1, 'Size': 3, 'NUM_CELLS': 25, 'NUM_UEs': 75, 'Radius': 10, 'Loc_delta': 2}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
 Config_Power = {'UE_Tr_power': 10, 'UAV_Tr_power': [10, 20, 40, 50, 80, 100], 'UAV_init_energy': 400,
