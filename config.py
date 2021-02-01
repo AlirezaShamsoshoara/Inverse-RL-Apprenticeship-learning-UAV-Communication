@@ -5,7 +5,7 @@
 """
 
 Mode = 'Expert'
-# Different Modes {"Expert", "IRL", "DRL", "QRL", "ResultsIRL", "ResultsDRL", "ResultsQRL"}
+# Different Modes {"Expert", "IRL", "DRL", "QRL", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL", "ResultsRand"}
 
 # Possible number of UEs: 75
 # Possible number of Cells: 25

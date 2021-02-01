@@ -25,6 +25,7 @@ from config import Config_Power
 from expert import expert_policy
 from inverserl import inverse_rl
 from location import plothexagon
+from randompolicy import random_action
 
 
 def main():
@@ -44,11 +45,15 @@ if __name__ == "__main__":
         deep_rl()
     elif Mode == "QRL":
         q_rl()
+    elif Mode == "Random":
+        random_action()
     elif Mode == "ResultsIRL":
         pass
     elif Mode == "ResultsDRL":
         pass
     elif Mode == "ResultsQRL":
+        pass
+    elif Mode == "ResultsRand":
         pass
     else:
         print("Mode is not correct")
