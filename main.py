@@ -25,6 +25,7 @@ from config import Config_Power
 from expert import expert_policy
 from inverserl import inverse_rl
 from location import plothexagon
+from utils import find_closest_cell
 from randompolicy import random_action
 
 
@@ -32,7 +33,8 @@ def main():
     print(" ..... Running:")
     print("UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)")
     v_coord_cells, h_coord_cells, cell_ids, fig_cells, ax_cells = plothexagon()
-    fig_ues, ax_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
+    fig_ues, ax_ues, x_coord_ues, y_coord_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
+    ue_cell_ids = find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues)
 
 
 if __name__ == "__main__":
