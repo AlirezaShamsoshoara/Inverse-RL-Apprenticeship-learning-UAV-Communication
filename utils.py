@@ -6,6 +6,9 @@
 
 #########################################################
 # import libraries
+import numpy as np
+from config import Config_General
+from scipy.spatial.distance import cdist
 
 #########################################################
 # General Parameters
@@ -124,3 +127,15 @@ class UE:
 
     def calc_interference(self):
         pass
+
+
+def find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues):
+    num_ues = Config_General.get("NUM_UEs")
+    num_cells = Config_General.get("NUM_CELLS")
+    ue_cell_ids = np.zeros([num_ues], dtype=np.int16) - 1
+    cell_coord_pairs = np.concatenate((h_coord_cells.reshape(-1, 1), v_coord_cells.reshape(-1, 1)), axis=1)
+    for index in range(0, num_ues):
+        dist = cdist(np.array([[x_coord_ues[index], y_coord_ues[index]]]), cell_coord_pairs, 'euclidean')
+        min_index = np.argmin(dist)
+        ue_cell_ids[index] = min_index
+    return ue_cell_ids
