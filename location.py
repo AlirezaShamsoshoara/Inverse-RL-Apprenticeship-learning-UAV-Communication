@@ -59,6 +59,14 @@ def plothexagon():
 
 
 def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
+    x_coord_ues, y_coord_ues = geo_data_75ues_25cells(hcoord, vcoord)
+    ax_cells.scatter(x_coord_ues[:], y_coord_ues[:], color='m', edgecolors='none', marker='o')
+    # ax_cells.scatter(x_coord_ues, y_coord_ues, color='m', alpha=0.01)
+    plt.show(block=True)
+    return fig_cells, ax_cells
+
+
+def geo_data_75ues_25cells(hcoord, vcoord):
     x_coord_ues = np.zeros([num_ues], dtype=float)
     y_coord_ues = np.zeros([num_ues], dtype=float)
     x_coord_ues[0], y_coord_ues[0] = hcoord[1] - 3 * loc_delta, vcoord[1] + 0 * loc_delta
@@ -125,7 +133,37 @@ def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
     x_coord_ues[46], y_coord_ues[46] = hcoord[16] - 1 * loc_delta, vcoord[16] + 2.7 * loc_delta
     x_coord_ues[47], y_coord_ues[47] = hcoord[16] - 3 * loc_delta, vcoord[16] + 0 * loc_delta
 
-    ax_cells.scatter(x_coord_ues[:], y_coord_ues[:], color='m', edgecolors='none', marker='o')
-    # ax_cells.scatter(x_coord_ues, y_coord_ues, color='m', alpha=0.01)
-    plt.show(block=True)
-    return fig_cells, ax_cells
+    x_coord_ues[48], y_coord_ues[48] = hcoord[17] + 0 * loc_delta, vcoord[17] - 3 * loc_delta
+    x_coord_ues[49], y_coord_ues[49] = hcoord[17] + 0 * loc_delta, vcoord[17] + 2.7 * loc_delta
+    x_coord_ues[50], y_coord_ues[50] = hcoord[17] - 3 * loc_delta, vcoord[17] - 0.8 * loc_delta
+    x_coord_ues[51], y_coord_ues[51] = hcoord[17] + 1 * loc_delta, vcoord[17] - 1 * loc_delta
+    x_coord_ues[52], y_coord_ues[52] = hcoord[17] - 3 * loc_delta, vcoord[17] + 0 * loc_delta
+    x_coord_ues[53], y_coord_ues[53] = hcoord[17] + 2.5 * loc_delta, vcoord[17] + 1.5 * loc_delta
+
+    x_coord_ues[54], y_coord_ues[54] = hcoord[18] - 0 * loc_delta, vcoord[18] - 2 * loc_delta
+    x_coord_ues[55], y_coord_ues[55] = hcoord[18] + 2.5 * loc_delta, vcoord[18] - 1.5 * loc_delta
+
+    x_coord_ues[56], y_coord_ues[56] = hcoord[19] - 2.5 * loc_delta, vcoord[19] + 0.5 * loc_delta
+    x_coord_ues[57], y_coord_ues[57] = hcoord[19] + 2.5 * loc_delta, vcoord[19] - 0.5 * loc_delta
+
+    x_coord_ues[58], y_coord_ues[58] = hcoord[20] + 2.5 * loc_delta, vcoord[20] + 1.5 * loc_delta
+    x_coord_ues[59], y_coord_ues[59] = hcoord[20] + 2.5 * loc_delta, vcoord[20] - 1.9 * loc_delta
+    x_coord_ues[60], y_coord_ues[60] = hcoord[20] - 1.8 * loc_delta, vcoord[20] - 0.5 * loc_delta
+
+    x_coord_ues[61], y_coord_ues[61] = hcoord[21] + 1.5 * loc_delta, vcoord[21] + 3 * loc_delta
+    x_coord_ues[62], y_coord_ues[62] = hcoord[21] - 1.5 * loc_delta, vcoord[21] + 3 * loc_delta
+    x_coord_ues[63], y_coord_ues[63] = hcoord[21] - 2.8 * loc_delta, vcoord[21] + 0.2 * loc_delta
+    x_coord_ues[64], y_coord_ues[64] = hcoord[21] - 2.5 * loc_delta, vcoord[21] - 2.5 * loc_delta
+    x_coord_ues[65], y_coord_ues[65] = hcoord[21] - 0.8 * loc_delta, vcoord[21] - 0.2 * loc_delta
+    x_coord_ues[66], y_coord_ues[66] = hcoord[21] + 2.8 * loc_delta, vcoord[21] - 1.9 * loc_delta
+
+    x_coord_ues[67], y_coord_ues[67] = hcoord[22] - 2.8 * loc_delta, vcoord[22] - 1.2 * loc_delta
+    x_coord_ues[68], y_coord_ues[68] = hcoord[22] + 2.5 * loc_delta, vcoord[22] + 2.5 * loc_delta
+    x_coord_ues[69], y_coord_ues[69] = hcoord[22] + 1.9 * loc_delta, vcoord[22] - 1.2 * loc_delta
+    x_coord_ues[70], y_coord_ues[70] = hcoord[22] - 1.8 * loc_delta, vcoord[22] - 1.9 * loc_delta
+    x_coord_ues[71], y_coord_ues[71] = hcoord[22] - 1.8 * loc_delta, vcoord[22] + 1.9 * loc_delta
+
+    x_coord_ues[72], y_coord_ues[72] = hcoord[23] + 1.8 * loc_delta, vcoord[23] + 0.4 * loc_delta
+    x_coord_ues[73], y_coord_ues[73] = hcoord[23] - 1.8 * loc_delta, vcoord[23] - 1.9 * loc_delta
+    x_coord_ues[74], y_coord_ues[74] = hcoord[23] + 2.8 * loc_delta, vcoord[23] - 2.9 * loc_delta
+    return x_coord_ues, y_coord_ues
