@@ -21,7 +21,7 @@ from qrl import q_rl
 from config import Mode
 from deeprl import deep_rl
 from location import plotues
-from config import Config_Power
+from utils import create_ues
 from expert import expert_policy
 from inverserl import inverse_rl
 from location import plothexagon
@@ -35,6 +35,7 @@ def main():
     v_coord_cells, h_coord_cells, cell_ids, fig_cells, ax_cells = plothexagon()
     fig_ues, ax_ues, x_coord_ues, y_coord_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
     ue_cell_ids = find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues)
+    ues_objects = create_ues(x_coord_ues, y_coord_ues, ue_cell_ids)
 
 
 if __name__ == "__main__":
