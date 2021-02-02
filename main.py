@@ -18,6 +18,7 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 
 # Customized Modules
 from qrl import q_rl
+from utils import UAV
 from config import Mode
 from deeprl import deep_rl
 from location import plotues
@@ -36,12 +37,14 @@ def main():
     fig_ues, ax_ues, x_coord_ues, y_coord_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
     ue_cell_ids = find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues)
     ues_objects = create_ues(x_coord_ues, y_coord_ues, ue_cell_ids)
+    uav = UAV(x_loc=0, y_loc=0, cell_id=0)
+    return uav, ues_objects, ax_ues
 
 
 if __name__ == "__main__":
     if Mode == "Expert":
-        main()
-        expert_policy()
+        uav, ues_objects, ax_ues = main()
+        expert_policy(uav, ues_objects, ax_ues)
     elif Mode == "IRL":
         inverse_rl()
     elif Mode == "DRL":
