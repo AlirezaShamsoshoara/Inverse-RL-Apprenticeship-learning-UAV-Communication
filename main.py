@@ -43,8 +43,8 @@ def main():
 
 if __name__ == "__main__":
     if Mode == "Expert":
-        uav, ues_objects, ax_ues = main()
-        expert_policy(uav, ues_objects, ax_ues)
+        uav_main, ues_objects_main, ax_ues_amin = main()
+        expert_policy(uav_main, ues_objects_main, ax_ues_amin)
     elif Mode == "IRL":
         inverse_rl()
     elif Mode == "DRL":
