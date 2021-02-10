@@ -51,6 +51,8 @@ if __name__ == "__main__":
         deep_rl()
     elif Mode == "QRL":
         q_rl()
+    elif Mode == "BC":
+        behaioral_cloning()
     elif Mode == "Random":
         random_action()
     elif Mode == "ResultsIRL":
