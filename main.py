@@ -4,7 +4,7 @@ Created on January 26th, 2020
 @Project:   UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)
             Paper: ### TODO
             Arxiv: ### TODO
-            YouTUbeLink: ### TODO
+            YouTubeLink: ### TODO
 @Northern Arizona University
 This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.04 LTS machine
 """
@@ -17,7 +17,7 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 # General Modules
 
 # Customized Modules
-from qrl import q_rl
+from qlearning import qrl
 from utils import UAV
 from config import Mode
 from deeprl import deep_rl
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     elif Mode == "DRL":
         deep_rl()
     elif Mode == "QRL":
-        q_rl()
+        qrl()
     elif Mode == "BC":
         behavioral_cloning()
     elif Mode == "Random":

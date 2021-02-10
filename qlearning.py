@@ -14,5 +14,5 @@
 # Function definition
 
 
-def q_rl():
+def qrl():
     pass
