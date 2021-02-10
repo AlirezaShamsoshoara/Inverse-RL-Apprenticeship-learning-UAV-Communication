@@ -52,7 +52,7 @@ if __name__ == "__main__":
     elif Mode == "QRL":
         q_rl()
     elif Mode == "BC":
-        behaioral_cloning()
+        behavioral_cloning()
     elif Mode == "Random":
         random_action()
     elif Mode == "ResultsIRL":

@@ -14,5 +14,5 @@
 # Function definition
 
 
-def inverse_rl():
+def behavioral_cloning():
     pass
