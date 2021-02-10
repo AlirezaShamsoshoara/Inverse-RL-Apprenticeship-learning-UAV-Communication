@@ -28,6 +28,7 @@ from inverserl import inverse_rl
 from location import plothexagon
 from utils import find_closest_cell
 from randompolicy import random_action
+from behavioral import behavioral_cloning
 
 
 def main():
