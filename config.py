@@ -4,7 +4,7 @@
 #################################
 """
 
-Mode = 'Expert'
+Mode = 'Random'
 # Different Modes {"Expert", "IRL", "DRL", "QRL", "BC", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL",
 # "ResultsRand"}
 

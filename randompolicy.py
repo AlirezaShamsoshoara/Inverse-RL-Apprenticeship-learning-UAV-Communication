@@ -14,5 +14,5 @@
 # Function definition
 
 
-def random_action():
+def random_action(uav, ues_objects, ax_ues):
     pass

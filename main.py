@@ -55,7 +55,8 @@ if __name__ == "__main__":
     elif Mode == "BC":
         behavioral_cloning()
     elif Mode == "Random":
-        random_action()
+        uav_main, ues_objects_main, ax_ues_amin = main()
+        random_action(uav_main, ues_objects_main, ax_ues_amin)
     elif Mode == "ResultsIRL":
         pass
     elif Mode == "ResultsDRL":
