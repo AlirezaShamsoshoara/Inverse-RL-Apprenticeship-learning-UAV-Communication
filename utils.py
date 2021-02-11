@@ -7,6 +7,7 @@
 #########################################################
 # import libraries
 import numpy as np
+from config import Config_Power
 from config import Config_General
 from scipy.spatial.distance import cdist
 
@@ -14,7 +15,7 @@ from scipy.spatial.distance import cdist
 # General Parameters
 num_ues = Config_General.get("NUM_UEs")
 num_cells = Config_General.get("NUM_CELLS")
-ue_tr_power = Config_General.get("UE_Tr_power")
+ue_tr_power = Config_Power.get("UE_Tr_power")
 
 #########################################################
 # Class and Function definitions
@@ -143,10 +144,18 @@ def find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues):
 
 
 def create_ues(x_coord_ues, y_coord_ues, ue_cell_ids):
-    ues_objects = np.empty((num_ues, 1), dtype=object)
+    ues_objects = np.empty(num_ues, dtype=object)
     for ue in range(0, num_ues):
         ues_objects[ue] = UE(x_loc=x_coord_ues[ue], y_loc=y_coord_ues[ue])
-        ues_objects[ue, 0].set_ue_id(ue)
-        ues_objects[ue, 0].set_cell_id(ue_cell_ids[ue])
-        ues_objects[ue, 0].set_power(ue_tr_power)
+        ues_objects[ue].set_ue_id(ue)
+        ues_objects[ue].set_cell_id(ue_cell_ids[ue])
+        ues_objects[ue].set_power(ue_tr_power)
     return ues_objects
+
+
+def create_cells(h_coord_cells, v_coord_cells, cell_ids):
+    cells_objects = np.empty(num_cells, dtype=object)
+    for cell in range(0, num_cells):
+        cells_objects[cell] = Cell(h_coord_cells[cell], v_coord_cells[cell])
+        cells_objects[cell].set
+    return cells_objects

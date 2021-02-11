@@ -17,12 +17,13 @@ This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.
 # General Modules
 
 # Customized Modules
-from qlearning import qrl
 from utils import UAV
 from config import Mode
+from qlearning import qrl
 from deeprl import deep_rl
 from location import plotues
 from utils import create_ues
+from utils import create_cells
 from expert import expert_policy
 from inverserl import inverse_rl
 from location import plothexagon
@@ -38,6 +39,7 @@ def main():
     fig_ues, ax_ues, x_coord_ues, y_coord_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
     ue_cell_ids = find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues)
     ues_objects = create_ues(x_coord_ues, y_coord_ues, ue_cell_ids)
+    cells_objects = create_cells(h_coord_cells, v_coord_cells, cell_ids)
     uav = UAV(x_loc=0, y_loc=0, cell_id=0)
     return uav, ues_objects, ax_ues
 
