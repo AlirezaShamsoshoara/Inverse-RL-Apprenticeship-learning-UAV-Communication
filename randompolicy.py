@@ -20,7 +20,7 @@ dist_limit = Config_requirement.get('dist_limit')
 # Function definition
 
 
-def random_action(uav, ues_objects, ax_ues):
+def random_action(uav, ues_objects, ax_ues, cell_objects):
     print(" ****** Mode: Random policy by the drone ")
     tmp_value = 1
     while True:

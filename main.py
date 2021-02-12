@@ -41,12 +41,12 @@ def main():
     ues_objects = create_ues(x_coord_ues, y_coord_ues, ue_cell_ids)
     cells_objects = create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids)
     uav = UAV(x_loc=0, y_loc=0, cell_id=0)
-    return uav, ues_objects, ax_ues
+    return uav, ues_objects, ax_ues, cells_objects
 
 
 if __name__ == "__main__":
     if Mode == "Expert":
-        uav_main, ues_objects_main, ax_ues_main = main()
+        uav_main, ues_objects_main, ax_ues_main, _ = main()
         expert_policy(uav_main, ues_objects_main, ax_ues_main)
     elif Mode == "IRL":
         inverse_rl()
@@ -57,8 +57,8 @@ if __name__ == "__main__":
     elif Mode == "BC":
         behavioral_cloning()
     elif Mode == "Random":
-        uav_main, ues_objects_main, ax_ues_amin = main()
-        random_action(uav_main, ues_objects_main, ax_ues_amin)
+        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
+        random_action(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "ResultsIRL":
         pass
     elif Mode == "ResultsDRL":
