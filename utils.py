@@ -29,6 +29,7 @@ class Cell:
         self.num_ues_cell = num_ues_cell
         self.cell_id = unique_id
         self.location = [self.x_loc, self.y_loc]
+        self.ues_idx = None
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -41,6 +42,9 @@ class Cell:
     def set_id(self, uid):
         self.cell_id = uid
 
+    def set_ues_ids(self, ues_idx):
+        self.ues_idx = ues_idx
+
     def get_location(self):
         return self.location
 
@@ -49,6 +53,9 @@ class Cell:
 
     def get_id(self):
         return self.cell_id
+
+    def get_ues_idx(self):
+        return self.ues_idx
 
 
 class UAV:
@@ -153,9 +160,13 @@ def create_ues(x_coord_ues, y_coord_ues, ue_cell_ids):
     return ues_objects
 
 
-def create_cells(h_coord_cells, v_coord_cells, cell_ids):
+def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids):
     cells_objects = np.empty(num_cells, dtype=object)
+    counts = np.zeros(num_cells, dtype=np.int16)
+    _, counts[0+1:num_cells-1] = np.unique(ue_cell_ids, return_counts=True)
     for cell in range(0, num_cells):
         cells_objects[cell] = Cell(h_coord_cells[cell], v_coord_cells[cell])
-        cells_objects[cell].set
+        cells_objects[cell].set_id(cell_ids[cell])
+        cells_objects[cell].set_num_ues(counts[cell])
+        cells_objects[cell].set_ues_ids(np.where(ue_cell_ids == cell)[0])
     return cells_objects
