@@ -39,7 +39,7 @@ def main():
     fig_ues, ax_ues, x_coord_ues, y_coord_ues = plotues(fig_cells, ax_cells, cell_ids, h_coord_cells, v_coord_cells)
     ue_cell_ids = find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues)
     ues_objects = create_ues(x_coord_ues, y_coord_ues, ue_cell_ids)
-    cells_objects = create_cells(h_coord_cells, v_coord_cells, cell_ids)
+    cells_objects = create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids)
     uav = UAV(x_loc=0, y_loc=0, cell_id=0)
     return uav, ues_objects, ax_ues
 
