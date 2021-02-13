@@ -8,6 +8,7 @@
 # import libraries
 import numpy as np
 from config import Config_Power
+from config import actions_list
 from config import Config_General
 from scipy.spatial.distance import cdist
 
@@ -16,6 +17,7 @@ from scipy.spatial.distance import cdist
 num_ues = Config_General.get("NUM_UEs")
 num_cells = Config_General.get("NUM_CELLS")
 ue_tr_power = Config_Power.get("UE_Tr_power")
+
 
 #########################################################
 # Class and Function definitions
@@ -30,6 +32,7 @@ class Cell:
         self.cell_id = unique_id
         self.location = [self.x_loc, self.y_loc]
         self.ues_idx = None
+        self.coordinate = None
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -45,6 +48,9 @@ class Cell:
     def set_ues_ids(self, ues_idx):
         self.ues_idx = ues_idx
 
+    def set_coord(self, coord):
+        self.coordinate = coord
+
     def get_location(self):
         return self.location
 
@@ -56,6 +62,9 @@ class Cell:
 
     def get_ues_idx(self):
         return self.ues_idx
+
+    def get_coord(self):
+        return self.coordinate
 
 
 class UAV:
@@ -160,7 +169,7 @@ def create_ues(x_coord_ues, y_coord_ues, ue_cell_ids):
     return ues_objects
 
 
-def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids):
+def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinates):
     cells_objects = np.empty(num_cells, dtype=object)
     counts = np.zeros(num_cells, dtype=np.int16)
     _, counts[0+1:num_cells-1] = np.unique(ue_cell_ids, return_counts=True)
@@ -169,4 +178,13 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids):
         cells_objects[cell].set_id(cell_ids[cell])
         cells_objects[cell].set_num_ues(counts[cell])
         cells_objects[cell].set_ues_ids(np.where(ue_cell_ids == cell)[0])
+        cells_objects[cell].set_coord(coordinates[cell])
     return cells_objects
+
+
+def check_neighbor_availability(location, cells_objects):
+    return False
+
+
+def find_neighbors():
+    return None
