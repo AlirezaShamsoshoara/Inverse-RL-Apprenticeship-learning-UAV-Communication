@@ -55,7 +55,7 @@ def plothexagon():
     ax_cells.set_ylim([min(vcoord) - 2 * radius, max(vcoord) + 2 * radius])
     ax_cells.grid(True)
     # plt.show(block=False)
-    return np.array(vcoord), np.array(hcoord), cell_ids, fig_cells, ax_cells
+    return np.array(vcoord), np.array(hcoord), cell_ids, fig_cells, ax_cells, coordinates
 
 
 def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
