@@ -17,7 +17,8 @@ Mode = 'Random'
 
 # Possible number of UEs: 75
 # Possible number of Cells: 25
-Config_General = {'NUM_UAV': 1, 'Size': 5, 'NUM_CELLS': 25, 'NUM_UEs': 75, 'Radius': 10, 'Loc_delta': 2}
+Config_General = {'NUM_UAV': 1, 'Size': 5, 'NUM_CELLS': 25, 'NUM_UEs': 75, 'Radius': 10, 'Loc_delta': 2,
+                  'FLOAT_ACCURACY': 6}
 Config_requirement = {'dist_limit': Config_General.get('Size') + 2}
 movement_actions_list = [1, 2, 3, 4, 5, 6]  # 1: North, 2: North East, 3: South East, 4: South, 5: South West,
 # 6: North West
