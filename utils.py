@@ -99,17 +99,21 @@ class UAV:
         self.cell_id = cell_id
         self.power = tr_power
         self.location = [self.x_loc, self.y_loc]
+        self.action_movement = 0
 
     def set_location(self, loc):
         self.x_loc = loc[0]
         self.y_loc = loc[1]
         self.location = [self.x_loc, self.y_loc]
 
-    def set_id(self, cid):
+    def set_cell_id(self, cid):
         self.cell_id = cid
 
     def set_power(self, tr_power):
         self.power = tr_power
+
+    def set_action_movement(self, action):
+        self.action_movement = action
 
     def get_location(self):
         return self.location
@@ -119,6 +123,9 @@ class UAV:
 
     def get_tr_power(self):
         return self.power
+
+    def get_action_movement(self):
+        return self.action_movement
 
     def send_pkt(self):
         pass
