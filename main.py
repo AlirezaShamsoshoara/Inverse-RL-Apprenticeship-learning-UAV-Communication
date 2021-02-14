@@ -24,10 +24,11 @@ from deeprl import deep_rl
 from location import plotues
 from utils import create_ues
 from utils import create_cells
-from expert import expert_policy
 from inverserl import inverse_rl
+from expert import expert_policy
 from location import plothexagon
 from utils import find_closest_cell
+from shortestpath import short_path
 from randompolicy import random_action
 from behavioral import behavioral_cloning
 
@@ -56,6 +57,8 @@ if __name__ == "__main__":
         qrl()
     elif Mode == "BC":
         behavioral_cloning()
+    elif Mode == "Shortest":
+        short_path()
     elif Mode == "Random":
         uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
         random_action(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)

@@ -12,8 +12,8 @@ import numpy as np
 #########################################################
 # Configuration
 Mode = 'Random'
-# Different Modes {"Expert", "IRL", "DRL", "QRL", "BC", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL",
-# "ResultsRand"}
+# Different Modes {"Expert", "IRL", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL",
+# "ResultsBC", "ResultShortest", "ResultsRand"}
 
 # Possible number of UEs: 75
 # Possible number of Cells: 25
