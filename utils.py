@@ -18,6 +18,7 @@ from scipy.spatial.distance import cdist
 num_ues = Config_General.get("NUM_UEs")
 num_cells = Config_General.get("NUM_CELLS")
 ue_tr_power = Config_Power.get("UE_Tr_power")
+float_acc = Config_General.get('FLOAT_ACCURACY')
 
 
 #########################################################
@@ -34,6 +35,16 @@ class Cell:
         self.location = [self.x_loc, self.y_loc]
         self.ues_idx = None
         self.coordinate = None
+        self.neighbors = None
+        self.available_actions = None
+
+    def print_info(self):
+        print("Cell ID = ", self.cell_id, "\n",
+              "Location = ", self.location, "\n",
+              "Num UEs = ", self.num_ues_cell, "\n",
+              "UEs index = ", self.ues_idx, "\n",
+              "Neighbors = ", self.neighbors, "\n",
+              "Actions = ", self.available_actions, "\n")
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -52,6 +63,12 @@ class Cell:
     def set_coord(self, coord):
         self.coordinate = coord
 
+    def set_neighbors(self, neighbors):
+        self.neighbors = neighbors
+
+    def set_available_actions(self, actions):
+        self.available_actions = actions
+
     def get_location(self):
         return self.location
 
@@ -66,6 +83,12 @@ class Cell:
 
     def get_coord(self):
         return self.coordinate
+
+    def get_neighbor(self):
+        return self.neighbors
+
+    def get_actions(self):
+        return self.available_actions
 
 
 class UAV:
@@ -182,46 +205,55 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinate
         cells_objects[cell].set_coord(coordinates[cell])
 
     for cell in range(0, num_cells):
-        find_neighbors(cells_objects[cell], cells_objects)
+        available_neighbor, available_action = find_neighbors(cells_objects[cell], cells_objects)
+        cells_objects[cell].set_neighbors(available_neighbor)
+        cells_objects[cell].set_available_actions(available_action)
     return cells_objects
 
 
 def check_neighbor_availability(location, cells_objects):
-    return False
+    for cell in range(0, len(cells_objects)):
+        if round(cells_objects[cell].get_location()[0], float_acc) == round(location[0], float_acc) and \
+                round(cells_objects[cell].get_location()[1], float_acc) == round(location[1], float_acc):
+            return True, cells_objects[cell].get_id()
+    return False, None
 
 
 def find_neighbors(cell_object, cell_objects):
-    num_actions = len(movement_actions_list)
     available_action = []
+    available_neighbor = []
     x_cell = cell_object.get_location()[0]
     y_cell = cell_object.get_location()[1]
     for action in movement_actions_list:
         x_change, y_change = action_to_location(action)
         new_x = x_cell + x_change
         new_y = y_cell + y_change
-        check_neighbor_availability([new_x, new_y], cell_objects)
-    return []
+        check_flag, neighbor = check_neighbor_availability([new_x, new_y], cell_objects)
+        if check_flag:
+            available_action.append(action)
+            available_neighbor.append(neighbor)
+    return available_neighbor, available_action
 
 
 def action_to_location(action):
     x_change, y_change = None, None
     x_step, y_step = config_movement_step.get('x_step'), config_movement_step.get('y_step')
-    if action is 1:
+    if action == 1:
         x_change = 0
         y_change = y_step
-    elif action is 2:
+    elif action == 2:
         x_change = x_step
         y_change = (1./2.) * y_step
-    elif action is 3:
+    elif action == 3:
         x_change = x_step
         y_change = (-1./2.) * y_step
-    elif action is 4:
+    elif action == 4:
         x_change = 0
         y_change = -y_step
-    elif action is 5:
+    elif action == 5:
         x_change = -x_step
         y_change = (-1./2.) * y_step
-    elif action is 6:
+    elif action == 6:
         x_change = -x_step
         y_change = (1./2.) * y_step
     else:
