@@ -22,6 +22,13 @@ dist_limit = Config_requirement.get('dist_limit')
 
 def random_action(uav, ues_objects, ax_ues, cell_objects):
     print(" ****** Mode: Random policy by the drone ")
+
+    distance = 0
+    while distance <= dist_limit:
+        # TODO: Set the transmission power for higher throughput
+        # TODO: Calculate the interference from other neighbor UEs on the UAV base station
+        # TODO: Calculate the UAV's interference effect on neighbor UEs because of the power allocation
+        distance += 1
     tmp_value = 1
     while True:
         ax_ues.patches[tmp_value].set_color('g')
