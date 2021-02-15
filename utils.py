@@ -9,9 +9,11 @@
 import numpy as np
 from config import Config_Power
 from config import Config_General
+from config import Config_interference
 from config import config_movement_step
 from config import movement_actions_list
 from scipy.spatial.distance import cdist
+from scipy.spatial.distance import euclidean
 
 #########################################################
 # General Parameters
@@ -19,6 +21,7 @@ num_ues = Config_General.get("NUM_UEs")
 num_cells = Config_General.get("NUM_CELLS")
 ue_tr_power = Config_Power.get("UE_Tr_power")
 float_acc = Config_General.get('FLOAT_ACCURACY')
+antenna_gain = Config_interference.get('AntennaGain')
 
 
 #########################################################
@@ -30,9 +33,10 @@ class Cell:
     def __init__(self, x_loc=None, y_loc=None, num_ues_cell=-1, unique_id=-1):
         self.x_loc = x_loc
         self.y_loc = y_loc
+        self.z_loc = 0.0
         self.num_ues_cell = num_ues_cell
         self.cell_id = unique_id
-        self.location = [self.x_loc, self.y_loc]
+        self.location = [self.x_loc, self.y_loc, self.z_loc]
         self.ues_idx = None
         self.coordinate = None
         self.neighbors = None
@@ -49,7 +53,7 @@ class Cell:
     def set_location(self, loc):
         self.x_loc = loc[0]
         self.y_loc = loc[1]
-        self.location = [self.x_loc, self.y_loc]
+        self.location = [self.x_loc, self.y_loc, self.z_loc]
 
     def set_num_ues(self, num_ues_cell):
         self.num_ues_cell = num_ues_cell
@@ -93,19 +97,20 @@ class Cell:
 
 class UAV:
 
-    def __init__(self, x_loc=None, y_loc=None, cell_id=-1, tr_power=0):
+    def __init__(self, x_loc=None, y_loc=None, z_loc=None, cell_id=-1, tr_power=0):
         self.x_loc = x_loc
         self.y_loc = y_loc
+        self.z_loc = z_loc
         self.cell_id = cell_id
         self.power = tr_power
-        self.location = [self.x_loc, self.y_loc]
+        self.location = [self.x_loc, self.y_loc, self.z_loc]
         self.action_movement = 0
         self.interference = 0
 
     def set_location(self, loc):
         self.x_loc = loc[0]
         self.y_loc = loc[1]
-        self.location = [self.x_loc, self.y_loc]
+        self.location = [self.x_loc, self.y_loc, self.z_loc]
 
     def set_cell_id(self, cid):
         self.cell_id = cid
@@ -134,7 +139,7 @@ class UAV:
     def calc_throughput(self):
         pass
 
-    def calc_interference(self, cell_objects):
+    def calc_interference(self, cell_objects, ues_objects):
         current_cell = self.get_cell_id()
         neighbors = cell_objects[current_cell].get_neighbor()
         interference = 0
@@ -142,7 +147,8 @@ class UAV:
             ues = cell_objects[neighbor].get_ues_idx()
             for ue in ues:
                 print(ue)
-                interference += 
+                interference += (ues_objects[ue].get_power()) * get_csi(ues_objects[ue].get_location(),
+                                                                        cell_objects[current_cell].get_location())
 
     def calc_snir(self):
         pass
@@ -153,15 +159,16 @@ class UE:
     def __init__(self, x_loc=None, y_loc=None, ue_id=-1, cell_id=-1, tr_power=0):
         self.x_loc = x_loc
         self.y_loc = y_loc
+        self.z_loc = 0.0
         self.ue_id = ue_id
         self.cell_id = cell_id
         self.power = tr_power
-        self.location = [self.x_loc, self.y_loc]
+        self.location = [self.x_loc, self.y_loc, self.z_loc]
 
     def set_location(self, loc):
         self.x_loc = loc[0]
         self.y_loc = loc[1]
-        self.location = [self.x_loc, self.y_loc]
+        self.location = [self.x_loc, self.y_loc, self.z_loc]
 
     def set_ue_id(self, ue_id):
         self.ue_id = ue_id
@@ -274,3 +281,9 @@ def action_to_location(action):
     else:
         exit('Error: Not a defined action for the movement')
     return x_change, y_change
+
+
+def get_csi(loc_source, loc_destination):
+    distance = euclidean(loc_source, loc_destination)
+    csi = antenna_gain * (1/distance**2) * (1 + 1j)
+    return csi
