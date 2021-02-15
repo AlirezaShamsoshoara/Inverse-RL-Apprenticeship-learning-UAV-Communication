@@ -100,6 +100,7 @@ class UAV:
         self.power = tr_power
         self.location = [self.x_loc, self.y_loc]
         self.action_movement = 0
+        self.interference = 0
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -133,8 +134,15 @@ class UAV:
     def calc_throughput(self):
         pass
 
-    def calc_interference(self):
-        pass
+    def calc_interference(self, cell_objects):
+        current_cell = self.get_cell_id()
+        neighbors = cell_objects[current_cell].get_neighbor()
+        interference = 0
+        for neighbor in neighbors:
+            ues = cell_objects[neighbor].get_ues_idx()
+            for ue in ues:
+                print(ue)
+                interference += 
 
     def calc_snir(self):
         pass

@@ -6,6 +6,7 @@
 
 #########################################################
 # import libraries
+from random import seed
 from random import randint
 import matplotlib.pyplot as plt
 from config import Config_Power
@@ -26,12 +27,13 @@ dist_limit = Config_requirement.get('dist_limit')
 
 def random_action(uav, ues_objects, ax_ues, cell_objects):
     print(" ****** Mode: Random policy by the drone ")
+    seed(1732)
     tmp_cell = 1
     distance = 0
     # while True:
     while distance <= dist_limit:
         # TODO: Set the transmission power for the throughput
-        # TODO: Calculate the interference from other neighbor UEs on the UAV base station
+        # TODO: Calculate the interference from other neighbor UEs on the UAV's base station
         # TODO: Calculate the UAV's interference effect on neighbor UEs because of the power allocation
 
         ax_ues.patches[tmp_cell].set_color('g')
@@ -54,6 +56,7 @@ def random_action(uav, ues_objects, ax_ues, cell_objects):
         tx_index = randint(0, len(tx_powers)-1)
         tx_power = tx_powers[tx_index]
         uav.set_power(tr_power=tx_power)
+        interference = uav.calc_interference(cell_objects)
 
         distance += 1
         plt.pause(0.00000001)
