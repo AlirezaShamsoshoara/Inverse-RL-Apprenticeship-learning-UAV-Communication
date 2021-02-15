@@ -18,7 +18,7 @@ Mode = 'Random'
 # Possible number of UEs: 75
 # Possible number of Cells: 25
 Config_General = {'NUM_UAV': 1, 'Size': 5, 'NUM_CELLS': 25, 'NUM_UEs': 75, 'Radius': 10, 'Loc_delta': 2,
-                  'FLOAT_ACCURACY': 6}
+                  'FLOAT_ACCURACY': 6, 'Altitude': 50.0}
 Config_requirement = {'dist_limit': Config_General.get('Size') + 2}
 movement_actions_list = [1, 2, 3, 4, 5, 6]  # 1: North, 2: North East, 3: South East, 4: South, 5: South West,
 # 6: North West
@@ -26,10 +26,10 @@ movement_actions_list = [1, 2, 3, 4, 5, 6]  # 1: North, 2: North East, 3: South 
 config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}
 
-Config_interference = {}
+Config_interference = {'AntennaGain': 100}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
-Config_Power = {'UE_Tr_power': 10, 'UAV_Tr_power': [10, 20, 40, 50, 80, 100], 'UAV_init_energy': 400,
-                'UAV_mobility_consumption': 10}  # Tr power: mW, Energy, Jule
+Config_Power = {'UE_Tr_power': 10.0, 'UAV_Tr_power': [10.0, 20.0, 40.0, 50.0, 80.0, 100.0], 'UAV_init_energy': 400.0,
+                'UAV_mobility_consumption': 10.0}  # Tr power: mW, Energy, Jule
 
 Config_QRL = {}
 Config_IRL = {}
