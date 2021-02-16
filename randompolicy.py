@@ -32,9 +32,9 @@ def random_action(uav, ues_objects, ax_ues, cell_objects):
     distance = 0
     # while True:
     while distance <= dist_limit:
-        # TODO: Set the transmission power for the throughput
-        # TODO: Calculate the interference from other neighbor UEs on the UAV's base station
-        # TODO: Calculate the UAV's interference effect on neighbor UEs because of the power allocation
+        # TODO: Set the transmission power for the throughput (Done!)
+        # TODO: Calculate the interference from other neighbor UEs on the UAV's base station (Done!)
+        # TODO: Calculate the UAV's interference effect on neighbor UEs because of the transmission power allocation
 
         ax_ues.patches[tmp_cell].set_color('g')
         ax_ues.patches[cell_source].set_color('r')
@@ -57,7 +57,9 @@ def random_action(uav, ues_objects, ax_ues, cell_objects):
         tx_power = tx_powers[tx_index]
         uav.set_power(tr_power=tx_power)
         interference = uav.calc_interference(cell_objects, ues_objects)
-        sinr = uav.calc_sinr(cell_objects)
+        sinr, snr = uav.calc_sinr(cell_objects)
+        throughput = uav.calc_throughput()
+        interference_ues = uav.calc_interference_ues(cell_objects, ues_objects)
 
         distance += 1
         plt.pause(0.00000001)
