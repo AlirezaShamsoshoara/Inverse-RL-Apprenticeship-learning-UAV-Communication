@@ -26,9 +26,9 @@ movement_actions_list = [1, 2, 3, 4, 5, 6]  # 1: North, 2: North East, 3: South 
 config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}
 
-Config_interference = {'AntennaGain': 100}
+Config_interference = {'AntennaGain': 100, 'Bandwidth': 50}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
-Config_Power = {'UE_Tr_power': 10.0, 'UAV_Tr_power': [10.0, 20.0, 40.0, 50.0, 80.0, 100.0], 'UAV_init_energy': 400.0,
+Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 150.0, 200.0], 'UAV_init_energy': 400.0,
                 'UAV_mobility_consumption': 10.0}  # Tr power: mW, Energy, Jule
 
 Config_QRL = {}
