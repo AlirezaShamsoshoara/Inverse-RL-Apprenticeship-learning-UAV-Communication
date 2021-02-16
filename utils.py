@@ -20,9 +20,9 @@ from scipy.spatial.distance import euclidean
 num_ues = Config_General.get("NUM_UEs")
 num_cells = Config_General.get("NUM_CELLS")
 ue_tr_power = Config_Power.get("UE_Tr_power")
+bandwidth = Config_interference.get('Bandwidth')
 float_acc = Config_General.get('FLOAT_ACCURACY')
 antenna_gain = Config_interference.get('AntennaGain')
-
 
 #########################################################
 # Class and Function definitions
@@ -106,6 +106,10 @@ class UAV:
         self.location = [self.x_loc, self.y_loc, self.z_loc]
         self.action_movement = 0
         self.interference = 0
+        self.snr = 0
+        self.sinr = 0
+        self.throughput = 0
+        self.interference_over_ues = 0
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -136,9 +140,6 @@ class UAV:
     def send_pkt(self):
         pass
 
-    def calc_throughput(self):
-        pass
-
     def calc_interference(self, cells_objects, ues_objects):
         current_cell = self.get_cell_id()
         neighbors = cells_objects[current_cell].get_neighbor()
@@ -153,7 +154,43 @@ class UAV:
         return self.interference
 
     def calc_sinr(self, cell_objects):
-        sinr =
+        cell = self.get_cell_id()
+        csi = get_csi(self.location, cell_objects[cell].get_location())
+        csi_abs = (abs(csi))**2
+        sinr = (self.get_tr_power()) * csi_abs / (1 + self.interference)
+        snr = (self.get_tr_power()) * csi_abs
+        self.sinr = sinr
+        self.snr = snr
+        return self.sinr, self.snr
+
+    def calc_throughput(self):
+        throughput = np.log2(1 + self.sinr)
+        self.throughput = throughput
+        return self.throughput
+
+    def calc_interference_ues(self, cells_objects, ues_objects):
+        current_cell = self.get_cell_id()
+        neighbors = cells_objects[current_cell].get_neighbor()
+        interference = 0
+        for neighbor in neighbors:
+            ues = cells_objects[neighbor].get_ues_idx()
+            for ue in ues:
+                csi = get_csi(self.location, ues_objects[ue].get_location())
+                interference_ue = self.power * ((abs(csi))**2)
+                print(interference_ue)
+                ues_objects[ue].set_interference(interference_ue)
+                interference += interference_ue
+        self.interference_over_ues = interference
+        return self.interference_over_ues
+
+    def get_interference(self):
+        return self.interference
+
+    def get_sinr(self):
+        return self.sinr, self.snr
+
+    def get_throughput(self):
+        return self.throughput
 
 
 class UE:
@@ -166,6 +203,7 @@ class UE:
         self.cell_id = cell_id
         self.power = tr_power
         self.location = [self.x_loc, self.y_loc, self.z_loc]
+        self.interference = 0
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -181,6 +219,9 @@ class UE:
     def set_power(self, tr_power):
         self.power = tr_power
 
+    def set_interference(self, interference):
+        self.interference = interference
+
     def get_location(self):
         return self.location
 
@@ -193,8 +234,8 @@ class UE:
     def get_power(self):
         return self.power
 
-    def calc_interference(self):
-        pass
+    def get_interference(self):
+        return self.interference
 
 
 def find_closest_cell(h_coord_cells, v_coord_cells, x_coord_ues, y_coord_ues):
