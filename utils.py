@@ -139,19 +139,21 @@ class UAV:
     def calc_throughput(self):
         pass
 
-    def calc_interference(self, cell_objects, ues_objects):
+    def calc_interference(self, cells_objects, ues_objects):
         current_cell = self.get_cell_id()
-        neighbors = cell_objects[current_cell].get_neighbor()
+        neighbors = cells_objects[current_cell].get_neighbor()
         interference = 0
         for neighbor in neighbors:
-            ues = cell_objects[neighbor].get_ues_idx()
+            ues = cells_objects[neighbor].get_ues_idx()
             for ue in ues:
-                print(ue)
-                interference += (ues_objects[ue].get_power()) * get_csi(ues_objects[ue].get_location(),
-                                                                        cell_objects[current_cell].get_location())
+                csi = get_csi(ues_objects[ue].get_location(), cells_objects[current_cell].get_location())
+                interference += (ues_objects[ue].get_power()) * ((abs(csi))**2)
+                print(interference)
+        self.interference = interference
+        return self.interference
 
-    def calc_snir(self):
-        pass
+    def calc_sinr(self, cell_objects):
+        sinr =
 
 
 class UE:

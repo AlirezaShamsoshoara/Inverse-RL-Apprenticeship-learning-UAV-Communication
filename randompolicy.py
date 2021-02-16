@@ -57,6 +57,7 @@ def random_action(uav, ues_objects, ax_ues, cell_objects):
         tx_power = tx_powers[tx_index]
         uav.set_power(tr_power=tx_power)
         interference = uav.calc_interference(cell_objects, ues_objects)
+        sinr = uav.calc_sinr(cell_objects)
 
         distance += 1
         plt.pause(0.00000001)
