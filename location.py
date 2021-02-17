@@ -48,9 +48,12 @@ def plothexagon():
     #                                  do_plot=True,
     #                                  rotate_deg=30.0,
     #                                  face_color=[0, 0.6, 0.4])
-    ax_cells.scatter(hcoord, vcoord, color='b', alpha=0.5, marker='^', s=50)
+    ax_cells.scatter(hcoord, vcoord, color='b', alpha=0.8, marker='^', s=50)
     ax_cells.patches[0].set_color('r')
     ax_cells.patches[cells-1].set_color('r')
+
+    circle = plt.Circle((0, 0), radius=radius*0.5*np.sqrt(3), color='b', alpha=0.3)
+    ax_cells.add_artist(circle)
     ax_cells.set_xlim([min(hcoord) - 2 * radius, max(hcoord) + 2 * radius])
     ax_cells.set_ylim([min(vcoord) - 2 * radius, max(vcoord) + 2 * radius])
     ax_cells.grid(True)
