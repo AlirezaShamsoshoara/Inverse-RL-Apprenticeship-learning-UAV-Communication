@@ -31,8 +31,8 @@ def random_action(uav, ues_objects, ax_objects, cell_objects):
     seed(1732)
     prev_cell = 1
     distance = 0
-    # while True:
-    while distance <= dist_limit:
+    while True:
+    # while distance <= dist_limit:
         # TODO: Set the transmission power for the throughput (Done!)
         # TODO: Calculate the interference from other neighbor UEs on the UAV's base station (Done!)
         # TODO: Calculate the UAV's interference effect on neighbor UEs because of the transmission power

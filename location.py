@@ -11,11 +11,12 @@ import matplotlib.pyplot as plt
 from config import Config_General
 from utils import power_to_radius
 from hexalattice.hexalattice import *
-from matplotlib.patches import RegularPolygon
+from matplotlib.patches import RegularPolygon, Arrow
 
 
 #########################################################
 # General Parameters
+first_arrow, arrow_patch = True, None
 radius = Config_General.get('Radius')
 cells = Config_General.get('NUM_CELLS')
 num_ues = Config_General.get('NUM_UEs')
@@ -176,6 +177,7 @@ def geo_data_75ues_25cells(hcoord, vcoord):
 
 def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_rand, tx_power, center, action,
                 arrow_center):
+    global first_arrow, arrow_patch
     ax_objects.patches[prev_cell].set_color('g')
     ax_objects.patches[cell_source].set_color('r')
     ax_objects.patches[cell_destination].set_color('r')
@@ -184,7 +186,19 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
     ax_objects.artists[0].set_center(center[0:2])
     ax_objects.artists[0].set_radius(tx_radius)
     dx, dy = action_to_arrow(action)
-    ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1, fc='k', ec='k')
+    # ***************************************
+    # Just the latest(recent) arrow or action
+    arrow = Arrow(arrow_center[0], arrow_center[1], dx, dy, width=3, fc='k')
+    if first_arrow:
+        arrow_patch = ax_objects.add_patch(arrow)
+        first_arrow = False
+    else:
+        arrow_patch.remove()
+        arrow_patch = ax_objects.add_patch(arrow)
+
+    # ***************************************
+    # Multiple arrows for all taken actions
+    # ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1, fc='k', ec='k')
 
 
 def action_to_arrow(action):
