@@ -17,8 +17,10 @@ from scipy.spatial.distance import euclidean
 
 #########################################################
 # General Parameters
+radius = Config_General.get('Radius')
 num_ues = Config_General.get("NUM_UEs")
 num_cells = Config_General.get("NUM_CELLS")
+tx_powers = Config_Power.get('UAV_Tr_power')
 ue_tr_power = Config_Power.get("UE_Tr_power")
 bandwidth = Config_interference.get('Bandwidth')
 float_acc = Config_General.get('FLOAT_ACCURACY')
@@ -149,7 +151,7 @@ class UAV:
             for ue in ues:
                 csi = get_csi(ues_objects[ue].get_location(), cells_objects[current_cell].get_location())
                 interference += (ues_objects[ue].get_power()) * ((abs(csi))**2)
-                print(interference)
+                # print(interference)
         self.interference = interference
         return self.interference
 
@@ -177,7 +179,7 @@ class UAV:
             for ue in ues:
                 csi = get_csi(self.location, ues_objects[ue].get_location())
                 interference_ue = self.power * ((abs(csi))**2)
-                print(interference_ue)
+                # print(interference_ue)
                 ues_objects[ue].set_interference(interference_ue)
                 interference += interference_ue
         self.interference_over_ues = interference
@@ -330,3 +332,11 @@ def get_csi(loc_source, loc_destination):
     distance = euclidean(loc_source, loc_destination)
     csi = antenna_gain * (1/distance**2) * (1 + 1j)
     return csi
+
+
+def power_to_radius(power):
+    min_power = min(tx_powers)
+    max_power = max(tx_powers)
+    diff = power - min_power
+    radius_circle = (diff/(max_power-min_power)) * radius * np.sqrt(3) + 0.5 * radius * np.sqrt(3)
+    return radius_circle
