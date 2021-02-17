@@ -9,6 +9,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from config import Config_General
+from utils import power_to_radius
 from hexalattice.hexalattice import *
 from matplotlib.patches import RegularPolygon
 
@@ -171,3 +172,43 @@ def geo_data_75ues_25cells(hcoord, vcoord):
     x_coord_ues[73], y_coord_ues[73] = hcoord[23] - 1.8 * loc_delta, vcoord[23] - 1.9 * loc_delta
     x_coord_ues[74], y_coord_ues[74] = hcoord[23] + 2.8 * loc_delta, vcoord[23] - 2.9 * loc_delta
     return x_coord_ues, y_coord_ues
+
+
+def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_rand, tx_power, center, action,
+                arrow_center):
+    ax_objects.patches[prev_cell].set_color('g')
+    ax_objects.patches[cell_source].set_color('r')
+    ax_objects.patches[cell_destination].set_color('r')
+    ax_objects.patches[neighbor_rand].set_color('b')
+    tx_radius = power_to_radius(tx_power)
+    ax_objects.artists[0].set_center(center[0:2])
+    ax_objects.artists[0].set_radius(tx_radius)
+    dx, dy = action_to_arrow(action)
+    ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1, fc='k', ec='k')
+
+
+def action_to_arrow(action):
+    a_len = radius * 0.5 * np.sqrt(3) - 1
+    dx = 0
+    dy = 0
+    if action == 1:
+        dx = 0
+        dy = a_len
+    elif action == 2:
+        dx = a_len * 0.5 * np.sqrt(3)
+        dy = a_len / 2
+    elif action == 3:
+        dx = a_len * 0.5 * np.sqrt(3)
+        dy = -a_len / 2
+    elif action == 4:
+        dx = 0
+        dy = -a_len
+    elif action == 5:
+        dx = -a_len * 0.5 * np.sqrt(3)
+        dy = -a_len / 2
+    elif action == 6:
+        dx = -a_len * 0.5 * np.sqrt(3)
+        dy = a_len / 2
+    else:
+        exit('Error: Not a defined action for the movement')
+    return dx, dy
