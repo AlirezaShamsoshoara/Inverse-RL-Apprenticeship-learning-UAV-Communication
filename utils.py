@@ -29,6 +29,10 @@ antenna_gain = Config_interference.get('AntennaGain')
 #########################################################
 # Class and Function definitions
 
+# ******************************************************
+# ******************* CELL CLASS ***********************
+# ******************************************************
+
 
 class Cell:
 
@@ -43,6 +47,7 @@ class Cell:
         self.coordinate = None
         self.neighbors = None
         self.available_actions = None
+        self.dist_destination = float('inf')
 
     def print_info(self):
         print("Cell ID = ", self.cell_id, "\n",
@@ -75,6 +80,9 @@ class Cell:
     def set_available_actions(self, actions):
         self.available_actions = actions
 
+    def set_distance(self, distance):
+        self.dist_destination = distance
+
     def get_location(self):
         return self.location
 
@@ -96,6 +104,13 @@ class Cell:
     def get_actions(self):
         return self.available_actions
 
+    def get_distance(self):
+        return self.dist_destination
+
+# ******************************************************
+# ******************* UAV CLASS ***********************
+# ******************************************************
+
 
 class UAV:
 
@@ -112,6 +127,7 @@ class UAV:
         self.sinr = 0
         self.throughput = 0
         self.interference_over_ues = 0
+        self.hop = 0
 
     def set_location(self, loc):
         self.x_loc = loc[0]
@@ -127,6 +143,9 @@ class UAV:
     def set_action_movement(self, action):
         self.action_movement = action
 
+    def set_hop(self, hop):
+        self.hop = hop
+
     def get_location(self):
         return self.location
 
@@ -138,6 +157,9 @@ class UAV:
 
     def get_action_movement(self):
         return self.action_movement
+
+    def get_hop(self):
+        return self.hop
 
     def send_pkt(self):
         pass
@@ -193,6 +215,10 @@ class UAV:
 
     def get_throughput(self):
         return self.throughput
+
+# ******************************************************
+# ******************* UE CLASS ***********************
+# ******************************************************
 
 
 class UE:
@@ -275,6 +301,22 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinate
         available_neighbor, available_action = find_neighbors(cells_objects[cell], cells_objects)
         cells_objects[cell].set_neighbors(available_neighbor)
         cells_objects[cell].set_available_actions(available_action)
+
+    cell = num_cells - 1
+    dest_cell = cell_ids[-1]
+    source_cell = cell_ids[0]
+    while cell >= 0:
+        if cells_objects[cell].get_id() == dest_cell:
+            cells_objects[cell].set_distance(0)
+        else:
+            neighbors = cells_objects[cell].get_neighbor()
+            distances = []
+            for neighbor in neighbors:
+                distances.append(cells_objects[neighbor].get_distance())
+                cells_objects[cell].set_distance(int(min(distances)) + 1)
+        # print("cell = ", cell, " distance = ", cells_objects[cell].get_distance())
+        cell -= 1
+
     return cells_objects
 
 
