@@ -30,9 +30,12 @@ Config_interference = {'AntennaGain': 100, 'Bandwidth': 50}
 Config_FLags = {'SAVE_path': True, 'Display_map': True}
 Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 150.0, 200.0], 'UAV_init_energy': 400.0,
                 'UAV_mobility_consumption': 10.0}  # Tr power: mW, Energy, Jule
+# [50.0, 60.0, 80.0, 100.0, 150.0, 200.0]
+# [50.0, 80.0, 100.0, 150.0]
 
+Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES': 20,
+              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit')}
 Config_QRL = {}
-Config_IRL = {}
 Config_DRL = {}
 
 pathDist = 'ConfigData/Cells_%d_Size_%d_UEs_%d' % (Config_General.get('NUM_CELLS'), Config_General.get('Size'),

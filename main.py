@@ -4,7 +4,7 @@ Created on January 26th, 2020
 @Project:   UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)
             Paper: ### TODO
             Arxiv: ### TODO
-            YouTubeLink: ### TODO
+            YouTube Link: ### TODO
 @Northern Arizona University
 This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.04 LTS machine
 """
@@ -55,8 +55,8 @@ def main():
 
 if __name__ == "__main__":
     if Mode == "Expert":
-        uav_main, ues_objects_main, ax_ues_main, _ = main()
-        expert_policy(uav_main, ues_objects_main, ax_ues_main)
+        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
+        expert_policy(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "IRL":
         inverse_rl()
     elif Mode == "DRL":
