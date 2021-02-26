@@ -192,6 +192,12 @@ class UAV:
         self.throughput = throughput
         return self.throughput
 
+    def calc_max_throughput(self, cell_objects):
+        cell = self.get_cell_id()
+        csi = get_csi(self.location, cell)
+        csi_abs = (abs(csi))**2
+
+
     def calc_interference_ues(self, cells_objects, ues_objects):
         current_cell = self.get_cell_id()
         neighbors = cells_objects[current_cell].get_neighbor()

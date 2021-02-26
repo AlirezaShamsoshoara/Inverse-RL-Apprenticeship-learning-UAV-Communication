@@ -11,7 +11,7 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'Random'
+Mode = 'Expert'
 # Different Modes {"Expert", "IRL", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL",
 # "ResultsBC", "ResultShortest", "ResultsRand"}
 
