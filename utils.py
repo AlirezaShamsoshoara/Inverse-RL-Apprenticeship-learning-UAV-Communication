@@ -194,9 +194,12 @@ class UAV:
 
     def calc_max_throughput(self, cell_objects):
         cell = self.get_cell_id()
-        csi = get_csi(self.location, cell)
+        csi = get_csi(self.location, cell_objects[cell].get_location())
         csi_abs = (abs(csi))**2
-
+        max_power = max(tx_powers)
+        snr = max_power * csi_abs
+        throughput_max = np.log2(1 + snr)
+        return throughput_max
 
     def calc_interference_ues(self, cells_objects, ues_objects):
         current_cell = self.get_cell_id()
@@ -388,3 +391,9 @@ def power_to_radius(power):
     diff = power - min_power
     radius_circle = (diff/(max_power-min_power)) * radius * np.sqrt(3) + 0.5 * radius * np.sqrt(3)
     return radius_circle
+
+
+def multi_actions_to_action(action_movement, action_tx):
+    return np.where(action_movement == np.array(movement_actions_list))[0] * len(movement_actions_list) + \
+           np.where(action_tx == np.array(tx_powers))[0]
+
