@@ -41,6 +41,7 @@ class Cell:
         self.y_loc = y_loc
         self.z_loc = 0.0
         self.num_ues_cell = num_ues_cell
+        self.num_neighbor_ues = 0
         self.cell_id = unique_id
         self.location = [self.x_loc, self.y_loc, self.z_loc]
         self.ues_idx = None
@@ -65,6 +66,9 @@ class Cell:
     def set_num_ues(self, num_ues_cell):
         self.num_ues_cell = num_ues_cell
 
+    def set_num_neighbor_ues(self, num_neighbor_ues):
+        self.num_neighbor_ues = num_neighbor_ues
+
     def set_id(self, uid):
         self.cell_id = uid
 
@@ -88,6 +92,9 @@ class Cell:
 
     def get_num_ues(self):
         return self.num_ues_cell
+
+    def get_num_neighbor_ues(self):
+        return self.num_neighbor_ues
 
     def get_id(self):
         return self.cell_id
@@ -225,6 +232,14 @@ class UAV:
     def get_throughput(self):
         return self.throughput
 
+    def uav_perform_task(self, cell_objects, ues_objects):
+        interference = self.calc_interference(cell_objects, ues_objects)
+        sinr, snr = self.calc_sinr(cell_objects)
+        throughput = self.calc_throughput()
+        interference_ues = self.calc_interference_ues(cell_objects, ues_objects)
+        max_throughput = self.calc_max_throughput(cell_objects=cell_objects)
+        return interference, sinr, throughput, interference_ues, max_throughput
+
 # ******************************************************
 # ******************* UE CLASS ***********************
 # ******************************************************
@@ -310,6 +325,12 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinate
         available_neighbor, available_action = find_neighbors(cells_objects[cell], cells_objects)
         cells_objects[cell].set_neighbors(available_neighbor)
         cells_objects[cell].set_available_actions(available_action)
+
+    for cell in range(0, num_cells):
+        num_neighbor_ues = 0
+        for neighbor in cells_objects[cell].get_neighbor():
+            num_neighbor_ues += cells_objects[neighbor].get_num_ues()
+        cells_objects[cell].set_num_neighbor_ues(num_neighbor_ues)
 
     cell = num_cells - 1
     dest_cell = cell_ids[-1]
