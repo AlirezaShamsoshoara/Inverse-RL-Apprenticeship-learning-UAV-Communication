@@ -47,19 +47,20 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
 
         avail_actions_mov = cell_objects[cell].get_actions()
         avail_neighbors = cell_objects[cell].get_neighbor()
-        new_state = avail_neighbors[np.where(expert_action_mov == np.array(avail_actions_mov))[0][0]]
+        if np.any(expert_action_mov == np.array(avail_actions_mov)):
+            new_state = avail_neighbors[np.where(expert_action_mov == np.array(avail_actions_mov))[0][0]]
+        else:
+            new_state = state
         new_cell = new_state
         uav.set_cell_id(cid=new_cell)
         uav.set_location(loc=cell_objects[new_cell].get_location())
         uav.set_hop(hop=uav.get_hop()+1)
 
         uav.set_power(tr_power=expert_action_power)
-        interference = uav.calc_interference(cell_objects, ues_objects)
-        sinr, snr = uav.calc_sinr(cell_objects)
-        throughput = uav.calc_throughput()
-        interference_ues = uav.calc_interference_ues(cell_objects, ues_objects)
 
-        phi_1, phi_2, phi_3, phi_4, phi_5 = get_features(state=state, cell_objects=cell_objects, uav=uav,
+        interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
+                                                                                                ues_objects)
+        phi_1, phi_2, phi_3, phi_4, phi_5 = get_features(state=new_cell, cell_objects=cell_objects, uav=uav,
                                                          ues_objects=ues_objects)
 
         update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell, expert_action_power,
@@ -72,11 +73,11 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
 
 
 def get_features(state, cell_objects, uav, ues_objects):
-    num_neighbors_ues = 0
     phi_distance = 1 - np.power((cell_objects[state].get_distance()) / dist_limit, 2.)
     phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
-    for neighbor in cell_objects[state].get_neighbor():
-        num_neighbors_ues += len(cell_objects[neighbor].get_ues_idx())
+    # for neighbor in cell_objects[state].get_neighbor():
+    #     num_neighbors_ues += len(cell_objects[neighbor].get_ues_idx())
+    num_neighbors_ues = cell_objects[state].get_num_neighbor_ues()
     phi_ues = np.exp(-num_neighbors_ues)
     phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
     phi_interference = np.exp(-uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects))
