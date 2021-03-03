@@ -79,7 +79,7 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
                   "Throughput: ", throughput, '\n',
                   "Interference on Neighbor UEs: ", interference_ues)
             features = get_features(state=new_cell, cell_objects=cell_objects, uav=uav, ues_objects=ues_objects)
-            trajectory.append((current_state, expert_action, new_state, num_features))
+            trajectory.append((current_state, expert_action, new_state, features))
             update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell, expert_action_power,
                         cell_objects[new_cell].get_location(), expert_action_mov, cell_objects[cell].get_location())
 
