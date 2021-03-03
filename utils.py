@@ -332,6 +332,11 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinate
             num_neighbor_ues += cells_objects[neighbor].get_num_ues()
         cells_objects[cell].set_num_neighbor_ues(num_neighbor_ues)
 
+    list_neighbor_ues_ordered = []
+    for cell in range(0, num_cells):
+        list_neighbor_ues_ordered.append(cells_objects[cell].get_num_neighbor_ues())
+    print(sorted(list_neighbor_ues_ordered))
+
     cell = num_cells - 1
     dest_cell = cell_ids[-1]
     source_cell = cell_ids[0]
