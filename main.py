@@ -4,6 +4,7 @@ Created on January 26th, 2020
 @Project:   UAV communication using apprenticeship learning via Inverse Reinforcement Learning (IRL)
             Paper: ### TODO
             Arxiv: ### TODO
+            Github: https://github.com/AlirezaShamsoshoara/Inverse-RL-Apprenticeship-learning-UAV-Communication
             YouTube Link: ### TODO
 @Northern Arizona University
 This project is developed and tested with Python 3.6 using pycharm on Ubuntu 18.04 LTS machine

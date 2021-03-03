@@ -33,14 +33,16 @@ Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 15
 # [50.0, 60.0, 80.0, 100.0, 150.0, 200.0]
 # [50.0, 80.0, 100.0, 150.0]
 
-Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES': 20,
-              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit')}
+Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES': 1,
+              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA': 0.9}
 Config_QRL = {}
 Config_DRL = {}
 
 pathDist = 'ConfigData/Cells_%d_Size_%d_UEs_%d' % (Config_General.get('NUM_CELLS'), Config_General.get('Size'),
                                                    Config_General.get('NUM_UEs'))
-Config_Path = {'PathDist': pathDist}
+
+ExpertPath = 'Data/ExpertDemo/'
+Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath}
 # pathEnergy = 'ConfigData/Energy_UE_%d_Radius_%d' % (Config_General.get('NUM_UE'), Radius)
 # Config_Path = {'PathDist': pathDist, 'pathEnergy': pathEnergy}
 

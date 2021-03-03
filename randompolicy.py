@@ -60,6 +60,9 @@ def random_action(uav, ues_objects, ax_objects, cell_objects):
         throughput = uav.calc_throughput()
         interference_ues = uav.calc_interference_ues(cell_objects, ues_objects)
 
+        # Should remove these above lines
+        uav.uav_perform_task(cell_objects, ues_objects)
+
         prev_cell = neighbor_rand
         distance += 1
         plt.pause(0.00000001)
