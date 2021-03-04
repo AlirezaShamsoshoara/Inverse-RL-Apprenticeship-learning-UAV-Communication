@@ -177,7 +177,7 @@ def geo_data_75ues_25cells(hcoord, vcoord):
 
 
 def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_rand, tx_power, center, action,
-                arrow_center):
+                arrow_center, arrow_list):
     global first_arrow, arrow_patch
     ax_objects.patches[prev_cell].set_color('g')
     ax_objects.patches[cell_source].set_color('r')
@@ -201,7 +201,21 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
     else:
         # ***************************************
         # Multiple arrows for all taken actions
-        ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1, fc='k', ec='k')
+        arrow_item = ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1,
+                                      fc='k', ec='k')
+        arrow_list.append(arrow_item)
+    return arrow_list
+
+
+def reset_axes(ax_objects, cell_source, cell_destination, arrow_patch_list):
+    ax_objects.patches[cell_source].set_color('r')
+    ax_objects.patches[cell_destination].set_color('r')
+    ax_objects.artists[0].set_center((0, 0))
+    ax_objects.artists[0].set_radius(radius*0.5*np.sqrt(3))
+    for arrow_item in arrow_patch_list:
+        arrow_item.remove()
+    arrow_patch_list = []
+    return arrow_patch_list
 
 
 def action_to_arrow(action):

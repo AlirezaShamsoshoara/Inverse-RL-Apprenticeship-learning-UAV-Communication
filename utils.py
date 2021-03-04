@@ -241,6 +241,12 @@ class UAV:
         max_throughput = self.calc_max_throughput(cell_objects=cell_objects)
         return interference, sinr, throughput, interference_ues, max_throughput
 
+    def uav_reset(self, cell_objects):
+        self.set_cell_id(cid=0)
+        self.set_location(loc=cell_objects[0].get_location())
+        self.set_hop(hop=0)
+        self.set_power(tr_power=0)
+
 # ******************************************************
 # ******************* UE CLASS ***********************
 # ******************************************************

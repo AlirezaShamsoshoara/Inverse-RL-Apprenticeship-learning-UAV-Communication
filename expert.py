@@ -12,6 +12,7 @@ from config import Config_IRL
 from config import Config_Path
 from config import Config_Power
 import matplotlib.pyplot as plt
+from location import reset_axes
 from location import update_axes
 from config import Config_General
 from config import Config_requirement
@@ -41,10 +42,14 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
     prev_cell = 1
     features = None
     trajectories = []
+    arrow_patch_list = []
     while episode < num_trajectories:
         trajectory = []
         distance = 0
         done = False
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+        uav.uav_reset(cell_objects)
         while distance < dist_limit and not done:
             cell = uav.get_cell_id()
             current_state = uav.get_cell_id()
@@ -90,8 +95,9 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
             features = get_features(state=new_cell, cell_objects=cell_objects, uav=uav, ues_objects=ues_objects)
             trajectory.append((current_state, expert_action, new_state, features, (interference, sinr, throughput,
                                                                                    interference_ues)))
-            update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell, expert_action_power,
-                        cell_objects[new_cell].get_location(), expert_action_mov, cell_objects[cell].get_location())
+            arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
+                                           expert_action_power, cell_objects[new_cell].get_location(),
+                                           expert_action_mov, cell_objects[cell].get_location(), arrow_patch_list)
 
             plt.pause(0.001)
             prev_cell = new_cell
