@@ -8,6 +8,7 @@
 # import libraries
 from random import seed
 from random import randint
+from config import Config_FLags
 import matplotlib.pyplot as plt
 from config import Config_Power
 from location import update_axes
@@ -28,6 +29,7 @@ dist_limit = Config_requirement.get('dist_limit')
 
 def random_action(uav, ues_objects, ax_objects, cell_objects):
     print(" ****** Mode: Random policy by the drone ")
+    Config_FLags['SingleArrow'] = True
     seed(1732)
     prev_cell = 1
     distance = 0
@@ -55,10 +57,10 @@ def random_action(uav, ues_objects, ax_objects, cell_objects):
         update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_rand, tx_power,
                     cell_objects[neighbor_rand].get_location(), action_rand, cell_objects[cell].get_location())
 
-        interference = uav.calc_interference(cell_objects, ues_objects)
-        sinr, snr = uav.calc_sinr(cell_objects)
-        throughput = uav.calc_throughput()
-        interference_ues = uav.calc_interference_ues(cell_objects, ues_objects)
+        # interference = uav.calc_interference(cell_objects, ues_objects)
+        # sinr, snr = uav.calc_sinr(cell_objects)
+        # throughput = uav.calc_throughput()
+        # interference_ues = uav.calc_interference_ues(cell_objects, ues_objects)
 
         # Should remove these above lines
         uav.uav_perform_task(cell_objects, ues_objects)
