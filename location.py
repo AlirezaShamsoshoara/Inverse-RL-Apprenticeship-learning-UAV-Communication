@@ -8,6 +8,7 @@
 # import libraries
 import numpy as np
 import matplotlib.pyplot as plt
+from config import Config_FLags
 from config import Config_General
 from utils import power_to_radius
 from hexalattice.hexalattice import *
@@ -186,19 +187,21 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
     ax_objects.artists[0].set_center(center[0:2])
     ax_objects.artists[0].set_radius(tx_radius)
     dx, dy = action_to_arrow(action)
-    # ***************************************
-    # Just the latest(recent) arrow or action
-    arrow = Arrow(arrow_center[0], arrow_center[1], dx, dy, width=3, fc='k')
-    if first_arrow:
-        arrow_patch = ax_objects.add_patch(arrow)
-        first_arrow = False
-    else:
-        arrow_patch.remove()
-        arrow_patch = ax_objects.add_patch(arrow)
 
-    # ***************************************
-    # Multiple arrows for all taken actions
-    # ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1, fc='k', ec='k')
+    if Config_FLags.get('SingleArrow'):
+        # ***************************************
+        # Just the latest(recent) arrow or action
+        arrow = Arrow(arrow_center[0], arrow_center[1], dx, dy, width=3, fc='k')
+        if first_arrow:
+            arrow_patch = ax_objects.add_patch(arrow)
+            first_arrow = False
+        else:
+            arrow_patch.remove()
+            arrow_patch = ax_objects.add_patch(arrow)
+    else:
+        # ***************************************
+        # Multiple arrows for all taken actions
+        ax_objects.arrow(arrow_center[0], arrow_center[1], dx, dy, head_width=1.05, head_length=1.1, fc='k', ec='k')
 
 
 def action_to_arrow(action):
