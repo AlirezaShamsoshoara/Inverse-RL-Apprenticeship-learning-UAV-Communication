@@ -17,6 +17,7 @@ from config import Config_General
 from config import Config_requirement
 from config import movement_actions_list
 from utils import multi_actions_to_action
+from config import Number_of_neighbor_UEs
 
 #########################################################
 # General Parameters
@@ -64,7 +65,13 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
             uav.set_location(loc=cell_objects[new_cell].get_location())
             uav.set_hop(hop=uav.get_hop()+1)
 
-            print("\n********** INFO:\n Number of Neighbor UEs: ", cell_objects[new_state].get_num_neighbor_ues())
+            suggested_power = min(tx_powers) + (Number_of_neighbor_UEs.get('Max') -
+                                                cell_objects[new_state].get_num_neighbor_ues()) / \
+                              (Number_of_neighbor_UEs.get('Max') - Number_of_neighbor_UEs.get('Min')) * \
+                              (max(tx_powers) - min(tx_powers))
+
+            print("\n********** INFO:\n Number of Neighbor UEs: ", cell_objects[new_state].get_num_neighbor_ues(), '\n',
+                  "Suggested Power: ", suggested_power)
 
             expert_action_power = float(input("Please select the TX Power" + str(tx_powers) + ":"))
             expert_action = multi_actions_to_action(expert_action_mov, expert_action_power)
@@ -74,12 +81,15 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
                                                                                                     ues_objects)
 
             print("\n********** INFO:\n",
+                  "Episode: ", episode+1, '\n',
+                  "Distance: ", distance + 1, '\n',
                   "Interference on UAV: ", interference, '\n',
                   "SINR: ", sinr, '\n',
                   "Throughput: ", throughput, '\n',
                   "Interference on Neighbor UEs: ", interference_ues)
             features = get_features(state=new_cell, cell_objects=cell_objects, uav=uav, ues_objects=ues_objects)
-            trajectory.append((current_state, expert_action, new_state, features))
+            trajectory.append((current_state, expert_action, new_state, features, (interference, sinr, throughput,
+                                                                                   interference_ues)))
             update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell, expert_action_power,
                         cell_objects[new_cell].get_location(), expert_action_mov, cell_objects[cell].get_location())
 
