@@ -13,6 +13,7 @@ from config import Config_interference
 from config import config_movement_step
 from config import movement_actions_list
 from scipy.spatial.distance import cdist
+from config import Number_of_neighbor_UEs
 from scipy.spatial.distance import euclidean
 
 #########################################################
@@ -335,7 +336,9 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinate
     list_neighbor_ues_ordered = []
     for cell in range(0, num_cells):
         list_neighbor_ues_ordered.append(cells_objects[cell].get_num_neighbor_ues())
-    print(sorted(list_neighbor_ues_ordered))
+    print("Sorted Number of Neighbor UEs: ", sorted(list_neighbor_ues_ordered))
+    Number_of_neighbor_UEs['Min'], Number_of_neighbor_UEs['Max'] = min(list_neighbor_ues_ordered),\
+                                                                   max(list_neighbor_ues_ordered)
 
     cell = num_cells - 1
     dest_cell = cell_ids[-1]
