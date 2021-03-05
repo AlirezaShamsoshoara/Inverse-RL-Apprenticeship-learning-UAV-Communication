@@ -55,7 +55,7 @@ def random_action(uav, ues_objects, ax_objects, cell_objects):
         tx_power = tx_powers[tx_index]
         uav.set_power(tr_power=tx_power)
         update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_rand, tx_power,
-                    cell_objects[neighbor_rand].get_location(), action_rand, cell_objects[cell].get_location())
+                    cell_objects[neighbor_rand].get_location(), action_rand, cell_objects[cell].get_location(), [])
 
         # interference = uav.calc_interference(cell_objects, ues_objects)
         # sinr, snr = uav.calc_sinr(cell_objects)

@@ -7,6 +7,7 @@
 #########################################################
 # import libraries
 import numpy as np
+from copy import deepcopy
 from random import randint
 from config import Config_IRL
 from config import Config_Path
@@ -40,7 +41,6 @@ trajectory_length = Config_IRL.get('TRAJECTORY_LENGTH')
 def expert_policy(uav, ues_objects, ax_objects, cell_objects):
     episode = 0
     prev_cell = 1
-    features = None
     trajectories = []
     arrow_patch_list = []
     while episode < num_trajectories:
@@ -50,14 +50,11 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
         arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
                                       arrow_patch_list=arrow_patch_list)
         uav.uav_reset(cell_objects)
+        expert_feature_expectation = np.zeros(num_features, dtype=float)
         while distance < dist_limit and not done:
             cell = uav.get_cell_id()
             current_state = uav.get_cell_id()
             expert_action_mov = int(input("Please select the cell to move" + str(movement_actions_list) + ": "))
-            # expert_action_power = float(input("Please select the TX Power" + str(tx_powers) + ":"))
-            # expert_action = multi_actions_to_action(expert_action_mov, expert_action_power)
-            # expert_action_mov_index = np.where(expert_action_mov == np.array(movement_actions_list))[0]
-            # expert_action_power_index = np.where(expert_action_power == np.array(tx_powers))[0]
 
             avail_actions_mov = cell_objects[cell].get_actions()
             avail_neighbors = cell_objects[cell].get_neighbor()
@@ -93,8 +90,11 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
                   "Throughput: ", throughput, '\n',
                   "Interference on Neighbor UEs: ", interference_ues)
             features = get_features(state=new_cell, cell_objects=cell_objects, uav=uav, ues_objects=ues_objects)
+            expert_feature_expectation += get_feature_expectation(features, distance)
+            print(expert_feature_expectation)
             trajectory.append((current_state, expert_action, new_state, features, (interference, sinr, throughput,
-                                                                                   interference_ues)))
+                                                                                   interference_ues),
+                               deepcopy(expert_feature_expectation)))
             arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
                                            expert_action_power, cell_objects[new_cell].get_location(),
                                            expert_action_mov, cell_objects[cell].get_location(), arrow_patch_list)
@@ -104,11 +104,11 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
             if new_cell == cell_destination:
                 done = True
             distance += 1
+        trajectory.append(expert_feature_expectation)
         trajectories.append(trajectory)
         episode += 1
     file_name = '%d_trajectories_%d_length' % (num_trajectories, dist_limit)
     np.savez(ExpertPath + file_name, trajectories)
-    get_feature_expectation(features=features)
 
 
 def get_features(state, cell_objects, uav, ues_objects):
@@ -117,11 +117,11 @@ def get_features(state, cell_objects, uav, ues_objects):
     # for neighbor in cell_objects[state].get_neighbor():
     #     num_neighbors_ues += len(cell_objects[neighbor].get_ues_idx())
     num_neighbors_ues = cell_objects[state].get_num_neighbor_ues()
-    phi_ues = np.exp(-num_neighbors_ues)
+    phi_ues = np.exp(-num_neighbors_ues/4)
     phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
     phi_interference = np.exp(-uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects))
     return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
 
 
-def get_feature_expectation(features):
-    return None
+def get_feature_expectation(features, distance):
+    return (gamma ** distance) * np.array(features)
