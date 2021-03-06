@@ -11,7 +11,7 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'Expert'
+Mode = 'IRL'
 # Different Modes {"Expert", "IRL", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL",
 # "ResultsBC", "ResultShortest", "ResultsRand"}
 
@@ -34,8 +34,8 @@ Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 15
 # [50.0, 60.0, 80.0, 100.0, 150.0, 200.0]
 # [50.0, 80.0, 100.0, 150.0]
 
-Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES': 2,
-              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA': 0.9}
+Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES_EXPERT': 2,
+              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA': 0.9, 'EPSILON_OPTIMIZATION': 0.1}
 Config_QRL = {}
 Config_DRL = {}
 
