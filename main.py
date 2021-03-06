@@ -59,7 +59,8 @@ if __name__ == "__main__":
         uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
         expert_policy(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "IRL":
-        inverse_rl()
+        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
+        inverse_rl(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "DRL":
         deep_rl()
     elif Mode == "QRL":
