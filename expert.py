@@ -91,7 +91,7 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
                   "Interference on Neighbor UEs: ", interference_ues)
             features = get_features(state=new_cell, cell_objects=cell_objects, uav=uav, ues_objects=ues_objects)
             expert_feature_expectation += get_feature_expectation(features, distance)
-            print(expert_feature_expectation)
+            print("Expert Feature Expectation: ", expert_feature_expectation)
             trajectory.append((current_state, expert_action, new_state, features, (interference, sinr, throughput,
                                                                                    interference_ues),
                                deepcopy(expert_feature_expectation)))
