@@ -342,7 +342,7 @@ def create_cells(h_coord_cells, v_coord_cells, cell_ids, ue_cell_ids, coordinate
     list_neighbor_ues_ordered = []
     for cell in range(0, num_cells):
         list_neighbor_ues_ordered.append(cells_objects[cell].get_num_neighbor_ues())
-    print("Sorted Number of Neighbor UEs: ", sorted(list_neighbor_ues_ordered))
+    print("Sorted Summation Number of Neighbor UEs: ", sorted(list_neighbor_ues_ordered))
     Number_of_neighbor_UEs['Min'], Number_of_neighbor_UEs['Max'] = min(list_neighbor_ues_ordered),\
                                                                    max(list_neighbor_ues_ordered)
 

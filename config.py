@@ -43,6 +43,5 @@ pathDist = 'ConfigData/Cells_%d_Size_%d_UEs_%d' % (Config_General.get('NUM_CELLS
                                                    Config_General.get('NUM_UEs'))
 
 ExpertPath = 'Data/ExpertDemo/'
-Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath}
-# pathEnergy = 'ConfigData/Energy_UE_%d_Radius_%d' % (Config_General.get('NUM_UE'), Radius)
-# Config_Path = {'PathDist': pathDist, 'pathEnergy': pathEnergy}
+WeightPath = 'Data/Weights/'
+Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath}
