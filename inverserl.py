@@ -11,17 +11,35 @@ from cvxopt import matrix
 from cvxopt import solvers
 from config import Config_IRL
 from config import Config_Path
+from config import Config_Power
+from config import Config_General
+from tensorflow.keras import Input
 from config import Config_requirement
+from config import movement_actions_list
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam, RMSprop
+from tensorflow.keras.layers import Dense, Activation, Dropout
 
 #########################################################
 # General Parameters
-num_epochs = Config_IRL.get('NUM_EPOCHS')
+action_list = []
+BATCH_SIZE = Config_IRL.get('BATCH_SIZE')
+NUM_EPOCHS = Config_IRL.get('NUM_EPOCHS')
+INIT_LR = Config_IRL.get('LEARNING_RATE')
 ExpertPath = Config_Path.get('ExpertPath')
 WeightPath = Config_Path.get('WeightPath')
+num_states = Config_General.get('NUM_CELLS')
+tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
-epsilon = Config_IRL.get('EPSILON_OPTIMIZATION')
+epsilon_grd = Config_IRL.get('EPSILON_GREEDY')
 dist_limit = Config_requirement.get('dist_limit')
+epsilon_opt = Config_IRL.get('EPSILON_OPTIMIZATION')
 num_trajectories = Config_IRL.get('NUM_TRAJECTORIES_EXPERT')
+
+num_required_replays = NUM_EPOCHS / 10
+for i in range(len(tx_powers) * len(movement_actions_list)):
+    action_list.append(i)
+action_array = np.array(action_list, dtype=np.int8)
 
 #########################################################
 # Function definition
@@ -48,6 +66,10 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
         weight_file.write(str(weight_list[-1]))
 
     # TODO(1): Run another simulation based on the new weights to update the learner policy (Feature expectation policy)
+    # TODO: To run another simulation we can have simple Q learning model or a deep inverse reinforcement learning one
+
+    model = build_neural_network()
+    learner(model, weights_norm)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
@@ -106,3 +128,34 @@ def optimization(policy_expert, policies_agent):
         return weights, weights_normalized, solution_weights
     else:
         return None, None, solution_weights
+
+
+def learner(model, weights):
+    episode = 0
+    replay = []
+
+    while episode < NUM_EPOCHS:
+
+        if episode >= num_required_replays:
+            # do training the model
+            pass
+        episode += 1
+
+    return model
+
+
+def build_neural_network():
+    input_dim = num_states
+    model = Sequential()
+    model.add(Input(shape=(input_dim, )))
+    # First Layer
+    model.add(Dense(units=100, activation='relu', kernel_initializer='lecun_uniform'))
+
+    # Second Layer
+    model.add(Dense(units=100, activation='relu', kernel_initializer='lecun_uniform'))
+
+    # Output Layer
+    model.add(Dense(units=len(action_list), activation='linear', kernel_initializer='lecun_uniform'))
+    opt = Adam(lr=INIT_LR, decay=INIT_LR / NUM_EPOCHS)
+    model.compile(optimizer=opt, loss='mse', metrics=["accuracy"])
+    return model
