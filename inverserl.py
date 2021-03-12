@@ -53,6 +53,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     weight_file = open(WeightPath + weight_file_name_txt, 'w')
 
     expert_policy_feature_expectation = load_expert_feature_expectation()
+    # Just some random feature expectation for the learner:
     learner_policy_feature_expectation = [[4.75239812, 3.12983145, 0.12987357, 0.98712345, 6.90207523]]
 
     random_initial_t = np.linalg.norm(expert_policy_feature_expectation -
@@ -69,13 +70,13 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO: To run another simulation we can have simple Q learning model or a deep inverse reinforcement learning one
 
     model = build_neural_network()
-    learner(model, weights_norm)
+    learner_dqn(model, weights_norm)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
     print("Hyper Distance = ",)
-    # TODO: If the distance is less than a threshold, then break the optimization and report the optimal weights else
-    # TODO: (Contd) go to TODO(1)
+    # TODO: If the distance is less than a threshold, then break the optimization and report the optimal weights
+    # TODO: (Contd) and the optimal policy based on the imported weights else go to TODO(1)
 
     # TODO: Run the last simulation with the optimal weights for the evaluation and result comparison with other methods
 
@@ -130,7 +131,12 @@ def optimization(policy_expert, policies_agent):
         return None, None, solution_weights
 
 
-def learner(model, weights):
+def learner_lfa(weights):
+    # Q learning with Linear Function Approximation
+    pass
+
+
+def learner_dqn(model, weights):
     episode = 0
     replay = []
 
