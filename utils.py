@@ -432,3 +432,8 @@ def multi_actions_to_action(action_movement, action_tx):
     return np.where(action_movement == np.array(movement_actions_list))[0] * len(movement_actions_list) + \
            np.where(action_tx == np.array(tx_powers))[0]
 
+
+def action_to_multi_actions(action):
+    action_movement = 0
+    action_tx = 0
+    return action_movement, action_tx

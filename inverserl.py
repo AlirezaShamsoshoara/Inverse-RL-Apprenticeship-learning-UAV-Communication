@@ -12,6 +12,7 @@ from cvxopt import solvers
 from config import Config_IRL
 from config import Config_Path
 from config import Config_Power
+from location import reset_axes
 from config import Config_General
 from tensorflow.keras import Input
 from config import Config_requirement
@@ -25,7 +26,11 @@ from tensorflow.keras.layers import Dense, Activation, Dropout
 
 #########################################################
 # General Parameters
+
 action_list = []
+cell_source = 0
+num_cells = Config_General.get('NUM_CELLS')
+cell_destination = num_cells - 1
 BATCH_SIZE = Config_IRL.get('BATCH_SIZE')
 NUM_EPOCHS = Config_IRL.get('NUM_EPOCHS')
 INIT_LR = Config_IRL.get('LEARNING_RATE')
@@ -74,7 +79,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
     model = build_neural_network()
     learner_dqn(model, weights_norm)
-    learner_lfa_ql(weights_norm)
+    learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
@@ -135,13 +140,21 @@ def optimization(policy_expert, policies_agent):
         return None, None, solution_weights
 
 
-def learner_lfa_ql(weights):
+def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
     # Q learning with Linear Function Approximation
     scaler = StandardScaler()  # we should use partial_fit
     episode = 0
-
+    trajectories = []
+    arrow_patch_list = []
     while episode < NUM_EPOCHS:
-        pass
+        trajectory = []
+        distance = 0
+        done = False
+        uav.uav_reset(cell_objects)
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+        while distance < dist_limit or not done:
+            current_cell = uav.get_cell_id()
 
     pass
 
