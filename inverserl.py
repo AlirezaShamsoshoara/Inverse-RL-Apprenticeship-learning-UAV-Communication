@@ -15,8 +15,11 @@ from config import Config_Power
 from config import Config_General
 from tensorflow.keras import Input
 from config import Config_requirement
+from sklearn.pipeline import Pipeline
 from config import movement_actions_list
+from sklearn.linear_model import SGDRegressor
 from tensorflow.keras.models import Sequential
+from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.layers import Dense, Activation, Dropout
 
@@ -71,6 +74,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
     model = build_neural_network()
     learner_dqn(model, weights_norm)
+    learner_lfa_ql(weights_norm)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
@@ -131,8 +135,14 @@ def optimization(policy_expert, policies_agent):
         return None, None, solution_weights
 
 
-def learner_lfa(weights):
+def learner_lfa_ql(weights):
     # Q learning with Linear Function Approximation
+    scaler = StandardScaler()  # we should use partial_fit
+    episode = 0
+
+    while episode < NUM_EPOCHS:
+        pass
+
     pass
 
 
