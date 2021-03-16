@@ -6,9 +6,12 @@
 
 #########################################################
 # import libraries
+import random
 import numpy as np
+from random import seed
 from cvxopt import matrix
 from cvxopt import solvers
+from random import randint
 from config import Config_IRL
 from config import Config_Path
 from config import Config_Power
@@ -18,6 +21,7 @@ from tensorflow.keras import Input
 from config import Config_requirement
 from sklearn.pipeline import Pipeline
 from config import movement_actions_list
+from utils import action_to_multi_actions
 from sklearn.linear_model import SGDRegressor
 from tensorflow.keras.models import Sequential
 from sklearn.preprocessing import StandardScaler
@@ -26,7 +30,7 @@ from tensorflow.keras.layers import Dense, Activation, Dropout
 
 #########################################################
 # General Parameters
-
+seed(1369)
 action_list = []
 cell_source = 0
 num_cells = Config_General.get('NUM_CELLS')
@@ -44,7 +48,7 @@ dist_limit = Config_requirement.get('dist_limit')
 epsilon_opt = Config_IRL.get('EPSILON_OPTIMIZATION')
 num_trajectories = Config_IRL.get('NUM_TRAJECTORIES_EXPERT')
 
-num_required_replays = NUM_EPOCHS / 10
+num_required_replays = int(NUM_EPOCHS / 10)
 for i in range(len(tx_powers) * len(movement_actions_list)):
     action_list.append(i)
 action_array = np.array(action_list, dtype=np.int8)
@@ -78,7 +82,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO: To run another simulation we can have simple Q learning model or a deep inverse reinforcement learning one
 
     model = build_neural_network()
-    learner_dqn(model, weights_norm)
+    # learner_dqn(model, weights_norm)
     learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
@@ -146,6 +150,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
     episode = 0
     trajectories = []
     arrow_patch_list = []
+    epsilon_decay = 1
     while episode < NUM_EPOCHS:
         trajectory = []
         distance = 0
@@ -155,6 +160,67 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
                                       arrow_patch_list=arrow_patch_list)
         while distance < dist_limit or not done:
             current_cell = uav.get_cell_id()
+            # Calculate the current state
+            interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
+                                                                                                    ues_objects)
+            print("\n********** INFO:\n",
+                  "Episode: ", episode + 1, '\n',
+                  "Distance: ", distance, '\n',
+                  "Current State \n",
+                  "Interference on UAV: ", interference, '\n',
+                  "SINR: ", sinr, '\n',
+                  "Throughput: ", throughput, '\n',
+                  "Interference on Neighbor UEs: ", interference_ues)
+            features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
+                                                  ues_objects=ues_objects)
+            # features_current_state = phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
+
+            # Choose an action based on epsilon-greedy
+            if random.random() < (epsilon_grd * epsilon_decay):
+                action = randint(0, len(action_list)-1)
+            else:
+                # TODO: bring the model here for the greedy action
+                pass
+            action_movement_index, action_tx_index = action_to_multi_actions(action)
+            action_movement = action_movement_index + 1
+            action_power = tx_powers[action_tx_index]
+
+            # TODO: calculate the next_state
+            avail_actions_mov = cell_objects[current_cell].get_actions()
+            avail_neighbors = cell_objects[current_cell].get_neighbor()
+            if np.any(action_movement == np.array(avail_actions_mov)):
+                new_cell = avail_neighbors[np.where(action_movement == np.array(avail_actions_mov))[0][0]]
+            else:
+                new_cell = current_cell
+            uav.set_cell_id(cid=new_cell)
+            uav.set_location(loc=cell_objects[new_cell].get_location())
+            uav.set_hop(hop=uav.get_hop() + 1)
+            uav.set_power(tr_power=action_power)
+
+            interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
+                uav.uav_perform_task(cell_objects, ues_objects)
+
+            print("\n********** INFO:\n",
+                  "Episode: ", episode + 1, '\n',
+                  "Distance: ", distance + 1, '\n',
+                  "Next State \n",
+                  "Interference on UAV: ", interference_next, '\n',
+                  "SINR: ", sinr_next, '\n',
+                  "Throughput: ", throughput_next, '\n',
+                  "Interference on Neighbor UEs: ", interference_ues_next)
+            features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
+                                               ues_objects=ues_objects)
+
+            # TODO: Calculate the reward
+            # TODO: Update the Q value
+            # TODO: Calculate the td target
+
+            # update the estimator(model)
+
+            distance += 1
+
+        if epsilon_decay > 0.1 and episode > num_required_replays:
+            epsilon_decay -= (1 / NUM_EPOCHS)
 
     pass
 
@@ -188,3 +254,15 @@ def build_neural_network():
     opt = Adam(lr=INIT_LR, decay=INIT_LR / NUM_EPOCHS)
     model.compile(optimizer=opt, loss='mse', metrics=["accuracy"])
     return model
+
+
+def get_features(cell, cell_objects, uav, ues_objects):
+    phi_distance = 1 - np.power((cell_objects[cell].get_distance()) / dist_limit, 2.)
+    phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
+    # for neighbor in cell_objects[state].get_neighbor():
+    #     num_neighbors_ues += len(cell_objects[neighbor].get_ues_idx())
+    num_neighbors_ues = cell_objects[cell].get_num_neighbor_ues()
+    phi_ues = np.exp(-num_neighbors_ues/4)
+    phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
+    phi_interference = np.exp(-uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects))
+    return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference

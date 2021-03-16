@@ -21,8 +21,9 @@ Config_General = {'NUM_UAV': 1, 'Size': 5, 'NUM_CELLS': 25, 'NUM_UEs': 75, 'Radi
                   'FLOAT_ACCURACY': 6, 'Altitude': 50.0}
 Config_requirement = {'dist_limit': Config_General.get('Size') + 3}
 movement_actions_list = [1, 2, 3, 4, 5, 6]  # 1: North, 2: North East, 3: South East, 4: South, 5: South West,
-Number_of_neighbor_UEs = {'Min': 0, 'Max': 0}
 # 6: North West
+Number_of_neighbor_UEs = {'Min': 0, 'Max': 0}
+
 
 config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}

@@ -434,6 +434,6 @@ def multi_actions_to_action(action_movement, action_tx):
 
 
 def action_to_multi_actions(action):
-    action_movement = 0
-    action_tx = 0
+    action_movement = int(action % len(movement_actions_list))
+    action_tx = int(action / len(movement_actions_list))
     return action_movement, action_tx
