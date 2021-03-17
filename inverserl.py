@@ -31,8 +31,8 @@ from tensorflow.keras.layers import Dense, Activation, Dropout
 #########################################################
 # General Parameters
 seed(1369)
-action_list = []
 cell_source = 0
+action_list = []
 num_cells = Config_General.get('NUM_CELLS')
 cell_destination = num_cells - 1
 BATCH_SIZE = Config_IRL.get('BATCH_SIZE')
@@ -44,6 +44,8 @@ num_states = Config_General.get('NUM_CELLS')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
 epsilon_grd = Config_IRL.get('EPSILON_GREEDY')
+gamma_features = Config_IRL.get('GAMMA_FEATURES')
+gamma_discount = Config_IRL.get('GAMMA_DISCOUNT')
 dist_limit = Config_requirement.get('dist_limit')
 epsilon_opt = Config_IRL.get('EPSILON_OPTIMIZATION')
 num_trajectories = Config_IRL.get('NUM_TRAJECTORIES_EXPERT')
@@ -79,7 +81,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
         weight_file.write(str(weight_list[-1]))
 
     # TODO(1): Run another simulation based on the new weights to update the learner policy (Feature expectation policy)
-    # TODO: To run another simulation we can have simple Q learning model or a deep inverse reinforcement learning one
+    # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
 
     model = build_neural_network()
     # learner_dqn(model, weights_norm)
@@ -146,11 +148,12 @@ def optimization(policy_expert, policies_agent):
 
 def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
     # Q learning with Linear Function Approximation
-    scaler = StandardScaler()  # we should use partial_fit
+    std_scale = StandardScaler()  # we should use partial_fit
     episode = 0
     trajectories = []
     arrow_patch_list = []
     epsilon_decay = 1
+    sgd_models, std_scale = create_sgd_models(num_actions=len(action_list), std_scale=std_scale)
     while episode < NUM_EPOCHS:
         trajectory = []
         distance = 0
@@ -158,6 +161,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
         uav.uav_reset(cell_objects)
         arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
                                       arrow_patch_list=arrow_patch_list)
+        learner_feature_expectation = np.zeros(num_features, dtype=float)
         while distance < dist_limit or not done:
             current_cell = uav.get_cell_id()
             # Calculate the current state
@@ -180,12 +184,12 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
                 action = randint(0, len(action_list)-1)
             else:
                 # TODO: bring the model here for the greedy action
-                pass
+                action = get_greedy_action(sgd_models, features_current_state, std_scale)
             action_movement_index, action_tx_index = action_to_multi_actions(action)
             action_movement = action_movement_index + 1
             action_power = tx_powers[action_tx_index]
 
-            # TODO: calculate the next_state
+            # Calculate the next_state
             avail_actions_mov = cell_objects[current_cell].get_actions()
             avail_neighbors = cell_objects[current_cell].get_neighbor()
             if np.any(action_movement == np.array(avail_actions_mov)):
@@ -210,12 +214,21 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
                   "Interference on Neighbor UEs: ", interference_ues_next)
             features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
                                                ues_objects=ues_objects)
+            learner_feature_expectation += get_feature_expectation(features_next_state, distance)
 
-            # TODO: Calculate the reward
-            # TODO: Update the Q value
-            # TODO: Calculate the td target
+            # Calculate the reward
+            immediate_reward = np.dot(weights, features_next_state)
 
-            # update the estimator(model)
+            # TODO: Update the Q value and Calculate the td target
+            q_value_next = sgd_predictor(sgd_models, features_next_state, std_scale)
+            if new_cell == cell_destination:  # This is the termination point
+                done = True
+                q_td_target = immediate_reward
+            else:
+                q_td_target = immediate_reward + (gamma_discount * np.max(q_value_next))
+
+            # Update the estimator(model)
+            sgd_models, std_scale = update_sgd_models(sgd_models, features_next_state, action, q_td_target, std_scale)
 
             distance += 1
 
@@ -266,3 +279,43 @@ def get_features(cell, cell_objects, uav, ues_objects):
     phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
     phi_interference = np.exp(-uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects))
     return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
+
+
+def get_feature_expectation(features, distance):
+    return (gamma_features ** distance) * np.array(features)
+
+
+def create_sgd_models(num_actions, std_scale):
+    models = []
+    #  Here after creating each model, we have to do partial fit with some initial values, unless we will face
+    #  some errors because we are doing the first predict before the first update. If we don't do that, we probably
+    #  get some errors.
+    initial_values_features = np.array([0.4375, 1.0, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
+    std_scale.partial_fit(initial_values_features)
+    initial_values_features_scaled = std_scale.transform(initial_values_features)
+    # These are the initial feature values for the first state when the UAV is at location (x=0, y=0).
+    for _ in range(0, num_actions):
+        model = SGDRegressor(learning_rate="constant")
+        model.partial_fit(initial_values_features_scaled, [0])
+        models.append(model)
+    return models, std_scale
+
+
+def update_sgd_models(sgd_models, features_state, action, target, std_scale):
+    std_scale.partial_fit(np.array(features_state).reshape(1, -1))
+    features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
+    print("features_state = ", features_state, '\n'
+          "features_state_scaled = ", features_state_scaled)
+    sgd_models[action].partial_fit(features_state_scaled, [target])
+    return sgd_models, std_scale
+
+
+def sgd_predictor(sgd_models, features_state, std_scale):
+    features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
+    return np.array([m.predict(features_state_scaled)[0] for m in sgd_models])
+
+
+def get_greedy_action(sgd_models, features_state, std_scale):
+    action_q_values = sgd_predictor(sgd_models, features_state, std_scale)
+    action = np.argmax(action_q_values)
+    return action

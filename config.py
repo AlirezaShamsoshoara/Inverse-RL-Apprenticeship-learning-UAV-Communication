@@ -36,8 +36,9 @@ Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 15
 # [50.0, 80.0, 100.0, 150.0]
 
 Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES_EXPERT': 2,
-              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA': 0.9, 'EPSILON_OPTIMIZATION': 0.1,
-              'LEARNING_RATE': 1e-3, 'BATCH_SIZE': 100, 'EPSILON_GREEDY': 1}
+              'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA_FEATURES': 0.9,
+              'EPSILON_OPTIMIZATION': 0.1, 'LEARNING_RATE': 1e-3, 'BATCH_SIZE': 100, 'EPSILON_GREEDY': 1,
+              'GAMMA_DISCOUNT': 0.9}
 Config_QRL = {}
 Config_DRL = {}
 

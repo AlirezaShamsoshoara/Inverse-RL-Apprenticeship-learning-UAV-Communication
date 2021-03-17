@@ -26,7 +26,7 @@ from config import Number_of_neighbor_UEs
 num_cells = Config_General.get('NUM_CELLS')
 cell_source = 0
 cell_destination = num_cells - 1
-gamma = Config_IRL.get('GAMMA')
+gamma = Config_IRL.get('GAMMA_FEATURES')
 ExpertPath = Config_Path.get('ExpertPath')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
