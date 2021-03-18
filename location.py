@@ -210,6 +210,8 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
 def reset_axes(ax_objects, cell_source, cell_destination, arrow_patch_list):
     ax_objects.patches[cell_source].set_color('r')
     ax_objects.patches[cell_destination].set_color('r')
+    for cell in range(cell_source+1, cell_destination):
+        ax_objects.patches[cell].set_color('g')
     ax_objects.artists[0].set_center((0, 0))
     ax_objects.artists[0].set_radius(radius*0.5*np.sqrt(3))
     for arrow_item in arrow_patch_list:

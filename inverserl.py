@@ -16,6 +16,7 @@ from config import Config_IRL
 from config import Config_Path
 from config import Config_Power
 from location import reset_axes
+from location import update_axes
 from config import Config_General
 from tensorflow.keras import Input
 from config import Config_requirement
@@ -84,7 +85,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
 
     model = build_neural_network()
-    # learner_dqn(model, weights_norm)
+    # learner_dqn(model, weights_norqm)
     learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
@@ -153,6 +154,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
     trajectories = []
     arrow_patch_list = []
     epsilon_decay = 1
+    prev_cell = 1
     sgd_models, std_scale = create_sgd_models(num_actions=len(action_list), std_scale=std_scale)
     while episode < NUM_EPOCHS:
         trajectory = []
@@ -162,7 +164,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
         arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
                                       arrow_patch_list=arrow_patch_list)
         learner_feature_expectation = np.zeros(num_features, dtype=float)
-        while distance < dist_limit or not done:
+        while distance < dist_limit and not done:
             current_cell = uav.get_cell_id()
             # Calculate the current state
             interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
@@ -183,7 +185,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
             if random.random() < (epsilon_grd * epsilon_decay):
                 action = randint(0, len(action_list)-1)
             else:
-                # TODO: bring the model here for the greedy action
+                # Bring the model here for the greedy action
                 action = get_greedy_action(sgd_models, features_current_state, std_scale)
             action_movement_index, action_tx_index = action_to_multi_actions(action)
             action_movement = action_movement_index + 1
@@ -219,7 +221,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
             # Calculate the reward
             immediate_reward = np.dot(weights, features_next_state)
 
-            # TODO: Update the Q value and Calculate the td target
+            # Update the Next Q value and Calculate the td target
             q_value_next = sgd_predictor(sgd_models, features_next_state, std_scale)
             if new_cell == cell_destination:  # This is the termination point
                 done = True
@@ -228,8 +230,13 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
                 q_td_target = immediate_reward + (gamma_discount * np.max(q_value_next))
 
             # Update the estimator(model)
-            sgd_models, std_scale = update_sgd_models(sgd_models, features_next_state, action, q_td_target, std_scale)
+            sgd_models, std_scale = update_sgd_models(sgd_models, features_current_state, action, q_td_target,
+                                                      std_scale)
 
+            arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
+                                           action_power, cell_objects[new_cell].get_location(),
+                                           action_movement, cell_objects[current_cell].get_location(), arrow_patch_list)
+            prev_cell = new_cell
             distance += 1
 
         if epsilon_decay > 0.1 and episode > num_required_replays:
@@ -291,8 +298,9 @@ def create_sgd_models(num_actions, std_scale):
     #  some errors because we are doing the first predict before the first update. If we don't do that, we probably
     #  get some errors.
     initial_values_features = np.array([0.4375, 1.0, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
-    std_scale.partial_fit(initial_values_features)
-    initial_values_features_scaled = std_scale.transform(initial_values_features)
+    # std_scale.partial_fit(initial_values_features)
+    # initial_values_features_scaled = std_scale.transform(initial_values_features)
+    initial_values_features_scaled = initial_values_features
     # These are the initial feature values for the first state when the UAV is at location (x=0, y=0).
     for _ in range(0, num_actions):
         model = SGDRegressor(learning_rate="constant")
@@ -303,7 +311,8 @@ def create_sgd_models(num_actions, std_scale):
 
 def update_sgd_models(sgd_models, features_state, action, target, std_scale):
     std_scale.partial_fit(np.array(features_state).reshape(1, -1))
-    features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
+    # features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
+    features_state_scaled = np.array(features_state).reshape(1, -1)
     print("features_state = ", features_state, '\n'
           "features_state_scaled = ", features_state_scaled)
     sgd_models[action].partial_fit(features_state_scaled, [target])
@@ -311,7 +320,8 @@ def update_sgd_models(sgd_models, features_state, action, target, std_scale):
 
 
 def sgd_predictor(sgd_models, features_state, std_scale):
-    features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
+    # features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
+    features_state_scaled = np.array(features_state).reshape(1, -1)
     return np.array([m.predict(features_state_scaled)[0] for m in sgd_models])
 
 
