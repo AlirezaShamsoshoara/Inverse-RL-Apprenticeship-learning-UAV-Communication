@@ -45,6 +45,7 @@ Config_DRL = {}
 pathDist = 'ConfigData/Cells_%d_Size_%d_UEs_%d' % (Config_General.get('NUM_CELLS'), Config_General.get('Size'),
                                                    Config_General.get('NUM_UEs'))
 
-ExpertPath = 'Data/ExpertDemo/'
-WeightPath = 'Data/Weights/'
-Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath}
+ExpertPath = "Data/ExpertDemo/"
+WeightPath = "Data/Weights/"
+InverseRLPath = "Data/InverseRL/"
+Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath, 'InverseRLPath': InverseRLPath}

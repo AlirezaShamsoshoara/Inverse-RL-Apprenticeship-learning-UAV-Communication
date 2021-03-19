@@ -45,6 +45,7 @@ num_states = Config_General.get('NUM_CELLS')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
 epsilon_grd = Config_IRL.get('EPSILON_GREEDY')
+InverseRLPath = Config_Path.get('InverseRLPath')
 gamma_features = Config_IRL.get('GAMMA_FEATURES')
 gamma_discount = Config_IRL.get('GAMMA_DISCOUNT')
 dist_limit = Config_requirement.get('dist_limit')
@@ -86,7 +87,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
     model = build_neural_network()
     # learner_dqn(model, weights_norqm)
-    learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects)
+    learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
@@ -147,7 +148,7 @@ def optimization(policy_expert, policies_agent):
         return None, None, solution_weights
 
 
-def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects):
+def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_index):
     # Q learning with Linear Function Approximation
     std_scale = StandardScaler()  # we should use partial_fit
     episode = 0
