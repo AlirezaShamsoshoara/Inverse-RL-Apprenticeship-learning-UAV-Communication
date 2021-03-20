@@ -237,12 +237,20 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
                                            action_power, cell_objects[new_cell].get_location(),
                                            action_movement, cell_objects[current_cell].get_location(), arrow_patch_list)
+            trajectory.append((features_current_state, (interference, sinr, throughput, interference_ues), action,
+                               features_next_state, (interference_next, sinr_next, throughput_next,
+                                                     interference_ues_next),
+                               immediate_reward, learner_feature_expectation))
             prev_cell = new_cell
             distance += 1
 
         if epsilon_decay > 0.1 and episode > num_required_replays:
             epsilon_decay -= (1 / NUM_EPOCHS)
 
+        trajectory.append(learner_feature_expectation)
+        trajectories.append(trajectory)
+    trajectories.append(sgd_models)
+    # TODO: I have to plot the reward behavior in one simulation to see how they have the improvement. 
     pass
 
 
