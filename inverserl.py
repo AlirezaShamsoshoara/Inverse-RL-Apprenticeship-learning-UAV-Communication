@@ -250,7 +250,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
     trajectories.append(sgd_models)
-    # TODO: I have to plot the reward behavior in one simulation to see how they have the improvement. 
+    # TODO: I have to plot the reward behavior in one simulation to see how they have the improvement.
     pass
 
 
