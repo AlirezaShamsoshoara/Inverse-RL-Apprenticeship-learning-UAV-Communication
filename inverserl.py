@@ -10,11 +10,13 @@ import random
 import numpy as np
 from random import seed
 from cvxopt import matrix
+from copy import deepcopy
 from cvxopt import solvers
 from random import randint
 from config import Config_IRL
 from config import Config_Path
 from config import Config_Power
+from config import Config_FLags
 from location import reset_axes
 from location import update_axes
 from config import Config_General
@@ -81,7 +83,8 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     if solution.get('status') == "optimal":
         weight_list.append((weights, weights_norm))
         solution_list.append(solution)
-        weight_file.write(str(weight_list[-1]))
+        if Config_FLags.get('SAVE_IRL_WEIGHT'):
+            weight_file.write(str(weight_list[-1]))
 
     # TODO(1): Run another simulation based on the new weights to update the learner policy (Feature expectation policy)
     # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
@@ -99,8 +102,9 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO: Run the last simulation with the optimal weights for the evaluation and result comparison with other methods
 
     weight_file.close()
-    weight_file_name_np = 'weights_iter_%d_features_%d' % (iter_optimization, num_features)
-    np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
+    if Config_FLags.get('SAVE_IRL_WEIGHT'):
+        weight_file_name_np = 'weights_iter_%d_features_%d' % (iter_optimization, num_features)
+        np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
 
 
 def load_expert_feature_expectation():
@@ -241,7 +245,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             trajectory.append((features_current_state, (interference, sinr, throughput, interference_ues), action,
                                features_next_state, (interference_next, sinr_next, throughput_next,
                                                      interference_ues_next),
-                               immediate_reward, learner_feature_expectation))
+                               immediate_reward, deepcopy(learner_feature_expectation)))
             prev_cell = new_cell
             distance += 1
 
@@ -250,12 +254,18 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
 
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
+        episode += 1
     trajectories.append(sgd_models)
+    trajectories.append(learner_index)
 
     # TODO: I have to plot the reward behavior in one simulation to see how they have the improvement.
+    if Config_FLags.get("PLOT_RESULTS"):
+        plot_reward_irl(trajectories, learner_index)
 
-    plot_reward_irl(trajectories)
-    pass
+    # TODO: I have to save the trajectories' information on numpy files (Drive)
+    if Config_FLags.get("SAVE_IRL_DATA"):
+        learner_irl_file_name_np = 'learner_%d_index_EPOCHS_%d' % (learner_index, NUM_EPOCHS)
+        np.savez(InverseRLPath + learner_irl_file_name_np, trajectories=trajectories)
 
 
 def learner_dqn(model, weights):

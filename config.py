@@ -28,14 +28,17 @@ Number_of_neighbor_UEs = {'Min': 0, 'Max': 0}
 config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}
 
+Config_FLags = {'SAVE_path': True, 'Display_map': True, 'SingleArrow': False, 'SAVE_IRL_DATA': True,
+                'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': True, 'PLOT_RESULTS': True, 'SAVE_PLOT_PDF': True,
+                'SAVE_PLOT_FIG': True}
+
 Config_interference = {'AntennaGain': 100, 'Bandwidth': 50}
-Config_FLags = {'SAVE_path': True, 'Display_map': True, 'SingleArrow': False}
 Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 150.0, 200.0], 'UAV_init_energy': 400.0,
                 'UAV_mobility_consumption': 10.0}  # Tr power: mW, Energy, Jule
 # [50.0, 60.0, 80.0, 100.0, 150.0, 200.0]
 # [50.0, 80.0, 100.0, 150.0]
 
-Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 1000, 'NUM_TRAJECTORIES_EXPERT': 2,
+Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 100, 'NUM_TRAJECTORIES_EXPERT': 2,
               'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA_FEATURES': 0.9,
               'EPSILON_OPTIMIZATION': 0.1, 'LEARNING_RATE': 1e-3, 'BATCH_SIZE': 100, 'EPSILON_GREEDY': 1,
               'GAMMA_DISCOUNT': 0.9}
@@ -48,4 +51,7 @@ pathDist = 'ConfigData/Cells_%d_Size_%d_UEs_%d' % (Config_General.get('NUM_CELLS
 ExpertPath = "Data/ExpertDemo/"
 WeightPath = "Data/Weights/"
 InverseRLPath = "Data/InverseRL/"
-Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath, 'InverseRLPath': InverseRLPath}
+ResultPathPDF = "Results/PDF/"
+ResultPathFIG = "Results/FIG/"
+Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath, 'InverseRLPath': InverseRLPath,
+               'ResultPathPDF': ResultPathPDF, 'ResultPathFIG': ResultPathFIG}

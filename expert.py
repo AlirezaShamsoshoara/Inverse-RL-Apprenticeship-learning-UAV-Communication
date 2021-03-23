@@ -11,6 +11,7 @@ from copy import deepcopy
 from random import randint
 from config import Config_IRL
 from config import Config_Path
+from config import Config_FLags
 from config import Config_Power
 import matplotlib.pyplot as plt
 from location import reset_axes
@@ -31,8 +32,8 @@ ExpertPath = Config_Path.get('ExpertPath')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
 dist_limit = Config_requirement.get('dist_limit')
-num_trajectories = Config_IRL.get('NUM_TRAJECTORIES')
 trajectory_length = Config_IRL.get('TRAJECTORY_LENGTH')
+num_trajectories = Config_IRL.get('NUM_TRAJECTORIES_EXPERT')
 
 #########################################################
 # Function definition
@@ -107,8 +108,9 @@ def expert_policy(uav, ues_objects, ax_objects, cell_objects):
         trajectory.append(expert_feature_expectation)
         trajectories.append(trajectory)
         episode += 1
-    file_name = '%d_trajectories_%d_length' % (num_trajectories, dist_limit)
-    np.savez(ExpertPath + file_name, trajectories)
+    if Config_FLags.get("SAVE_EXPERT_DATA"):
+        file_name = '%d_trajectories_%d_length' % (num_trajectories, dist_limit)
+        np.savez(ExpertPath + file_name, trajectories)
 
 
 def get_features(state, cell_objects, uav, ues_objects):
