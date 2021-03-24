@@ -1,6 +1,6 @@
 """
 #################################
-# Inverse Reinforcement Learning
+# PLOT Module for demonstrating the results
 #################################
 """
 
@@ -8,6 +8,7 @@
 # import libraries
 import pickle
 import numpy as np
+from config import Config_IRL
 from config import Config_Path
 import matplotlib.pyplot as plt
 from config import Config_FLags
@@ -15,11 +16,11 @@ from config import Config_FLags
 
 #########################################################
 # General Parameters
-
-#########################################################
-# Function definition
+num_features = Config_IRL.get('NUM_FEATURES')
 ResultPathPDF = Config_Path.get('ResultPathPDF')
 ResultPathFIG = Config_Path.get('ResultPathFIG')
+#########################################################
+# Function definition
 
 
 def plot_reward_irl(trajectories, learner_index):
@@ -57,12 +58,12 @@ def plot_reward_irl(trajectories, learner_index):
     ax_reward.grid(True)
     ax_reward.legend(prop={'size': 14, 'weight': 'bold'}, loc='best')
 
-    file_fig_obj = ResultPathFIG + 'accumulative_reward_training_learner_%d_EPOCHS_%d.fig.pickle' % (learner_index,
-                                                                                                     num_epochs)
-    file_fig_pdf = ResultPathPDF + 'accumulative_reward_training_learner_%d_EPOCHS_%d.pdf' % (learner_index, num_epochs)
+    file_fig_obj = ResultPathFIG + 'accumulative_reward_training_Feature_%d_learner_%d_EPOCHS_%d.fig.pickle' % \
+                   (num_features, learner_index, num_epochs)
+    file_fig_pdf = ResultPathPDF + 'accumulative_reward_training_Feature_%d_learner_%d_EPOCHS_%d.pdf' % \
+                   (num_features, learner_index, num_epochs)
+
     if Config_FLags.get("SAVE_PLOT_PDF"):
         fig_reward.savefig(file_fig_pdf, bbox_inches='tight')
     if Config_FLags.get("SAVE_PLOT_FIG"):
         pickle.dump(fig_reward, open(file_fig_obj, 'wb'))
-
-    pass

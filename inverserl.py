@@ -6,6 +6,8 @@
 
 #########################################################
 # import libraries
+import time
+import pickle
 import random
 import numpy as np
 from random import seed
@@ -48,6 +50,7 @@ num_states = Config_General.get('NUM_CELLS')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
 epsilon_grd = Config_IRL.get('EPSILON_GREEDY')
+SGDModelPath = Config_Path.get('SGDModelPath')
 InverseRLPath = Config_Path.get('InverseRLPath')
 gamma_features = Config_IRL.get('GAMMA_FEATURES')
 gamma_discount = Config_IRL.get('GAMMA_DISCOUNT')
@@ -73,7 +76,10 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
     expert_policy_feature_expectation = load_expert_feature_expectation()
     # Just some random feature expectation for the learner:
-    learner_policy_feature_expectation = [[4.75239812, 3.12983145, 0.12987357, 0.98712345, 6.90207523]]
+    if num_features == 5:
+        learner_policy_feature_expectation = [[4.75239812, 3.12983145, 0.12987357, 0.98712345, 6.90207523]]
+    else:  # In this case, the number of feature is 4 and we don't consider the hop count.
+        learner_policy_feature_expectation = [[4.75239812, 0.12987357, 0.98712345, 6.90207523]]
 
     random_initial_t = np.linalg.norm(expert_policy_feature_expectation -
                                       np.array(learner_policy_feature_expectation[0]))
@@ -89,9 +95,9 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO(1): Run another simulation based on the new weights to update the learner policy (Feature expectation policy)
     # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
 
-    model = build_neural_network()
+    # model = build_neural_network()
     # learner_dqn(model, weights_norqm)
-    learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
+    sgd_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
@@ -116,7 +122,11 @@ def load_expert_feature_expectation():
     for trajectory in trajectories:
         sum_expert_feature_expectation += trajectory[-1]
     expert_feature_expectation = sum_expert_feature_expectation / num_trajectories
-    return expert_feature_expectation
+    if num_features == 5:
+        return expert_feature_expectation
+    else:  # In this case, the number of feature is 4 and we don't consider the hop count.
+        return np.concatenate((expert_feature_expectation[0], expert_feature_expectation[2:]), axis=None)
+        # return np.delete(expert_feature_expectation, 1, axis=0)
 
 
 def optimization(policy_expert, policies_agent):
@@ -162,6 +172,8 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
     epsilon_decay = 1
     prev_cell = 1
     sgd_models, std_scale = create_sgd_models(num_actions=len(action_list), std_scale=std_scale)
+    timer_start = time.perf_counter()
+    print("......... TOTAL EPOCHS = ", NUM_EPOCHS)
     while episode < NUM_EPOCHS:
         trajectory = []
         distance = 0
@@ -175,20 +187,24 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             # Calculate the current state
             interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
                                                                                                     ues_objects)
-            print("\n********** INFO:\n",
-                  "Episode: ", episode + 1, '\n',
-                  "Distance: ", distance, '\n',
-                  "Current State \n",
-                  "Interference on UAV: ", interference, '\n',
-                  "SINR: ", sinr, '\n',
-                  "Throughput: ", throughput, '\n',
-                  "Interference on Neighbor UEs: ", interference_ues)
+            if Config_FLags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance, '\n',
+                      "Current Cell:", current_cell, '\n',
+                      "Current State \n",
+                      "Interference on UAV: ", interference, '\n',
+                      "SINR: ", sinr, '\n',
+                      "Throughput: ", throughput, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues)
+
             features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
                                                   ues_objects=ues_objects)
             # features_current_state = phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
 
             # Choose an action based on epsilon-greedy
-            if random.random() < (epsilon_grd * epsilon_decay):
+            # if random.random() < (epsilon_grd * epsilon_decay):
+            if random.random() < epsilon_grd:
                 action = randint(0, len(action_list)-1)
             else:
                 # Bring the model here for the greedy action
@@ -212,14 +228,16 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
                 uav.uav_perform_task(cell_objects, ues_objects)
 
-            print("\n********** INFO:\n",
-                  "Episode: ", episode + 1, '\n',
-                  "Distance: ", distance + 1, '\n',
-                  "Next State \n",
-                  "Interference on UAV: ", interference_next, '\n',
-                  "SINR: ", sinr_next, '\n',
-                  "Throughput: ", throughput_next, '\n',
-                  "Interference on Neighbor UEs: ", interference_ues_next)
+            if Config_FLags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance + 1, '\n',
+                      "New Cell:", new_cell, '\n',
+                      "Next State \n",
+                      "Interference on UAV: ", interference_next, '\n',
+                      "SINR: ", sinr_next, '\n',
+                      "Throughput: ", throughput_next, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues_next)
             features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
                                                ues_objects=ues_objects)
             learner_feature_expectation += get_feature_expectation(features_next_state, distance)
@@ -255,17 +273,30 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
         episode += 1
+        if episode % 200 == 0:
+            timer_end = time.perf_counter()
+            print(" ......... EPISODE = ", episode, "......... ELAPSED TIME = ", round(timer_end - timer_start, 2),
+                  " Seconds, ", round((timer_end - timer_start)/60, 2), " mins, ",
+                  round((timer_end - timer_start)/3660, 2), " hour")
     trajectories.append(sgd_models)
     trajectories.append(learner_index)
 
-    # TODO: I have to plot the reward behavior in one simulation to see how they have the improvement.
+    # TODO: I have to plot the reward behavior in one simulation to see how they have improvement and convergence.
     if Config_FLags.get("PLOT_RESULTS"):
         plot_reward_irl(trajectories, learner_index)
 
-    # TODO: I have to save the trajectories' information on numpy files (Drive)
+    # TODO: I have to save the trajectories' information on numpy files (Drive) for later evaluation
     if Config_FLags.get("SAVE_IRL_DATA"):
-        learner_irl_file_name_np = 'learner_%d_index_EPOCHS_%d' % (learner_index, NUM_EPOCHS)
+        learner_irl_file_name_np = 'Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features, learner_index, NUM_EPOCHS)
         np.savez(InverseRLPath + learner_irl_file_name_np, trajectories=trajectories)
+
+    # TODO: Let's save the SGD models for later
+    if Config_FLags.get('SAVE_MODEL_IRL_SGD'):
+        file_sgd_models_save = SGDModelPath + 'SGD_Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features,
+                                                                                             learner_index, NUM_EPOCHS)
+        pickle.dump(sgd_models, open(file_sgd_models_save, 'wb'))
+
+    return sgd_models
 
 
 def learner_dqn(model, weights):
@@ -282,6 +313,7 @@ def learner_dqn(model, weights):
     return model
 
 
+"""
 def build_neural_network():
     input_dim = num_states
     model = Sequential()
@@ -297,6 +329,7 @@ def build_neural_network():
     opt = Adam(lr=INIT_LR, decay=INIT_LR / NUM_EPOCHS)
     model.compile(optimizer=opt, loss='mse', metrics=["accuracy"])
     return model
+"""
 
 
 def get_features(cell, cell_objects, uav, ues_objects):
@@ -308,7 +341,10 @@ def get_features(cell, cell_objects, uav, ues_objects):
     phi_ues = np.exp(-num_neighbors_ues/4)
     phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
     phi_interference = np.exp(-uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects))
-    return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
+    if num_features == 5:
+        return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
+    else:  # In this case, the number of feature is 4 and we don't consider the hop count.
+        return phi_distance, phi_ues, phi_throughput, phi_interference
 
 
 def get_feature_expectation(features, distance):
@@ -317,10 +353,14 @@ def get_feature_expectation(features, distance):
 
 def create_sgd_models(num_actions, std_scale):
     models = []
-    #  Here after creating each model, we have to do partial fit with some initial values, unless we will face
+    #  Here after creating each model, we have to do partial fit with some initial values, otherwise we will face
     #  some errors because we are doing the first predict before the first update. If we don't do that, we probably
     #  get some errors.
-    initial_values_features = np.array([0.4375, 1.0, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
+    if num_features == 5:
+        initial_values_features = np.array([0.4375, 1.0, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
+    else:  # In this case, the number of feature is 4 and we don't consider the hop count.
+        initial_values_features = np.array([0.4375, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
+
     # std_scale.partial_fit(initial_values_features)
     # initial_values_features_scaled = std_scale.transform(initial_values_features)
     initial_values_features_scaled = initial_values_features
@@ -336,8 +376,9 @@ def update_sgd_models(sgd_models, features_state, action, target, std_scale):
     std_scale.partial_fit(np.array(features_state).reshape(1, -1))
     # features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
     features_state_scaled = np.array(features_state).reshape(1, -1)
-    print("features_state = ", features_state, '\n'
-          "features_state_scaled = ", features_state_scaled)
+    if Config_FLags.get('PRINT_INFO'):
+        print("features_state = ", features_state, '\n'
+              "features_state_scaled = ", features_state_scaled)
     sgd_models[action].partial_fit(features_state_scaled, [target])
     return sgd_models, std_scale
 

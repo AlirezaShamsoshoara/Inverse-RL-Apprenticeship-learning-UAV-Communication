@@ -68,7 +68,8 @@ def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
     x_coord_ues, y_coord_ues = geo_data_75ues_25cells(hcoord, vcoord)
     ax_cells.scatter(x_coord_ues[:], y_coord_ues[:], color='m', edgecolors='none', marker='o')
     # ax_cells.scatter(x_coord_ues, y_coord_ues, color='m', alpha=0.01)
-    plt.show(block=False)
+    if Config_FLags.get('Display_map'):
+        plt.show(block=False)
     return fig_cells, ax_cells, x_coord_ues, y_coord_ues
 
 
