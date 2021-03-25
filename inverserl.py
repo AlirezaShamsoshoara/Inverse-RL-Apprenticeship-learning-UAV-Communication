@@ -41,6 +41,7 @@ cell_source = 0
 action_list = []
 num_cells = Config_General.get('NUM_CELLS')
 cell_destination = num_cells - 1
+NUM_PLAY = Config_IRL.get('NUM_PLAY')
 BATCH_SIZE = Config_IRL.get('BATCH_SIZE')
 NUM_EPOCHS = Config_IRL.get('NUM_EPOCHS')
 INIT_LR = Config_IRL.get('LEARNING_RATE')
@@ -96,14 +97,30 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
 
     # model = build_neural_network()
-    # learner_dqn(model, weights_norqm)
-    sgd_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
+    # trained_models = learner_dqn(model, weights_norm)
+    # trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
-    print("Hyper Distance = ",)
+
+    trained_models = load_trained_model(learner_index=0)
+    # Another model_Type is "DQN"
+    _, learner_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
+                                                              cell_objects, weights_norm, model_type="SGD")
+
+    hyper_distance = np.abs(np.dot(weights_norm, np.asarray(expert_policy_feature_expectation) -
+                                   np.asarray(learner_policy_feature_expectation)))
+    print("Hyper Distance = ", hyper_distance)
     # TODO: If the distance is less than a threshold, then break the optimization and report the optimal weights
     # TODO: (Contd) and the optimal policy based on the imported weights else go to TODO(1)
+    if hyper_distance < epsilon_opt:
+        # We are done with the Weight learning for the reward function and policy learning.
+        # Now we have to Save the finalized weights for the reward function and also the learned policy for the related
+        # weights.
+        pass
+    else:
+        # We have to find the weights again based on the updated learner_policy_feature_expectation
+        pass
 
     # TODO: Run the last simulation with the optimal weights for the evaluation and result comparison with other methods
 
@@ -203,7 +220,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             # features_current_state = phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
 
             # Choose an action based on epsilon-greedy
-            # if random.random() < (epsilon_grd * epsilon_decay):
+            # if random.random() < epsilon_decay:
             if random.random() < epsilon_grd:
                 action = randint(0, len(action_list)-1)
             else:
@@ -267,7 +284,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             prev_cell = new_cell
             distance += 1
 
-        if epsilon_decay > 0.1 and episode > num_required_replays:
+        if epsilon_decay > 0.01 and episode > num_required_replays:
             epsilon_decay -= (1 / NUM_EPOCHS)
 
         trajectory.append(learner_feature_expectation)
@@ -393,3 +410,99 @@ def get_greedy_action(sgd_models, features_state, std_scale):
     action_q_values = sgd_predictor(sgd_models, features_state, std_scale)
     action = np.argmax(action_q_values)
     return action
+
+
+def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weights, model_type="SGD"):
+    episode = 0
+    trajectories = []
+    arrow_patch_list = []
+    prev_cell = 1
+    print("......... TOTAL RUNs = ", NUM_PLAY)
+    learner_feature_expectation = np.zeros((NUM_PLAY, num_features), dtype=float)
+    while episode < NUM_PLAY:
+        trajectory = []
+        distance = 0
+        done = False
+        uav.uav_reset(cell_objects)
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+        while distance < dist_limit and not done:
+            current_cell = uav.get_cell_id()
+            interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
+                                                                                                    ues_objects)
+            if Config_FLags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance, '\n',
+                      "Current Cell:", current_cell, '\n',
+                      "Current State \n",
+                      "Interference on UAV: ", interference, '\n',
+                      "SINR: ", sinr, '\n',
+                      "Throughput: ", throughput, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues)
+            features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
+                                                  ues_objects=ues_objects)
+
+            if model_type == "SGD":
+                action = get_greedy_action(models, features_current_state, None)
+            else:
+                # Model Type is DQN
+                action = None
+                pass
+            action_movement_index, action_tx_index = action_to_multi_actions(action)
+            action_movement = action_movement_index + 1
+            action_power = tx_powers[action_tx_index]
+
+            # Calculate the next_state
+            avail_actions_mov = cell_objects[current_cell].get_actions()
+            avail_neighbors = cell_objects[current_cell].get_neighbor()
+            if np.any(action_movement == np.array(avail_actions_mov)):
+                new_cell = avail_neighbors[np.where(action_movement == np.array(avail_actions_mov))[0][0]]
+            else:
+                new_cell = current_cell
+
+            uav.set_cell_id(cid=new_cell)
+            uav.set_location(loc=cell_objects[new_cell].get_location())
+            uav.set_hop(hop=uav.get_hop() + 1)
+            uav.set_power(tr_power=action_power)
+
+            interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
+                uav.uav_perform_task(cell_objects, ues_objects)
+            if Config_FLags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance + 1, '\n',
+                      "New Cell:", new_cell, '\n',
+                      "Next State \n",
+                      "Interference on UAV: ", interference_next, '\n',
+                      "SINR: ", sinr_next, '\n',
+                      "Throughput: ", throughput_next, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues_next)
+            features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
+                                               ues_objects=ues_objects)
+            learner_feature_expectation[episode, :] += get_feature_expectation(features_next_state, distance)
+            # Calculate the reward
+            immediate_reward = np.dot(weights, features_next_state)
+            arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
+                                           action_power, cell_objects[new_cell].get_location(),
+                                           action_movement, cell_objects[current_cell].get_location(), arrow_patch_list)
+
+            trajectory.append((features_current_state, (interference, sinr, throughput, interference_ues), action,
+                               features_next_state, (interference_next, sinr_next, throughput_next,
+                                                     interference_ues_next),
+                               immediate_reward, deepcopy(learner_feature_expectation)))
+            prev_cell = new_cell
+            distance += 1
+        trajectory.append(learner_feature_expectation)
+        trajectories.append(trajectory)
+        episode += 1
+
+    return learner_feature_expectation, np.mean(learner_feature_expectation, axis=0)
+
+
+def load_trained_model(learner_index):
+    file_sgd_models_save = SGDModelPath + 'SGD_Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features,
+                                                                                         learner_index, NUM_EPOCHS)
+    with open(file_sgd_models_save, "rb") as file_obj:
+        models = pickle.load(file_obj)
+    return models
