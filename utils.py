@@ -134,6 +134,7 @@ class UAV:
         self.snr = 0
         self.sinr = 0
         self.throughput = 0
+        self.throughput_snr = 0
         self.interference_over_ues = 0
         self.hop = 0
 
@@ -197,8 +198,11 @@ class UAV:
 
     def calc_throughput(self):
         throughput = np.log2(1 + self.sinr)
+        throughput_snr = np.log2(1 + self.snr)
         self.throughput = throughput
-        return self.throughput
+        self.throughput_snr = throughput_snr
+        return self.throughput_snr
+        # return self.throughput
 
     def calc_max_throughput(self, cell_objects):
         cell = self.get_cell_id()

@@ -10,6 +10,7 @@ import time
 import pickle
 import random
 import numpy as np
+from config import Mode
 from random import seed
 from cvxopt import matrix
 from copy import deepcopy
@@ -57,7 +58,12 @@ gamma_features = Config_IRL.get('GAMMA_FEATURES')
 gamma_discount = Config_IRL.get('GAMMA_DISCOUNT')
 dist_limit = Config_requirement.get('dist_limit')
 epsilon_opt = Config_IRL.get('EPSILON_OPTIMIZATION')
+MAX_DISTANCE = Config_requirement.get('MAX_DISTANCE')
 num_trajectories = Config_IRL.get('NUM_TRAJECTORIES_EXPERT')
+MIN_UE_NEIGHBORS = Config_requirement.get('MIN_UE_NEIGHBORS')
+MAX_UE_NEIGHBORS = Config_requirement.get('MAX_UE_NEIGHBORS')
+MIN_INTERFERENCE = Config_requirement.get('MIN_INTERFERENCE')
+MAX_INTERFERENCE = Config_requirement.get('MAX_INTERFERENCE')
 
 num_required_replays = int(NUM_EPOCHS / 10)
 for i in range(len(tx_powers) * len(movement_actions_list)):
@@ -69,6 +75,7 @@ action_array = np.array(action_list, dtype=np.int8)
 
 
 def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
+    model_type = None
     weight_list = []
     solution_list = []
     iter_optimization = 0
@@ -97,8 +104,13 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
 
     # model = build_neural_network()
-    # trained_models = learner_dqn(model, weights_norm)
-    # trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
+    if Mode == "IRL_DQN":
+        model_type = "DQN"
+        # trained_models = learner_dqn(model, weights_norm)
+        pass
+    if Mode == "IRL_SGD":
+        model_type = "SGD"
+        trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
 
     # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
     # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
@@ -106,7 +118,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     trained_models = load_trained_model(learner_index=0)
     # Another model_Type is "DQN"
     _, learner_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
-                                                              cell_objects, weights_norm, model_type="SGD")
+                                                              cell_objects, weights_norm, model_type=model_type)
 
     hyper_distance = np.abs(np.dot(weights_norm, np.asarray(expert_policy_feature_expectation) -
                                    np.asarray(learner_policy_feature_expectation)))
@@ -131,7 +143,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
 
 def load_expert_feature_expectation():
-    file_name = '%d_trajectories_%d_length.npz' % (num_trajectories, dist_limit)
+    file_name = '%d_Features_%d_trajectories_%d_length.npz' % (num_features, num_trajectories, dist_limit)
     readfile = np.load(ExpertPath + file_name, allow_pickle=True)
     # 'arr_0' = readfile.files[0]
     trajectories = readfile["arr_0"]
@@ -139,11 +151,11 @@ def load_expert_feature_expectation():
     for trajectory in trajectories:
         sum_expert_feature_expectation += trajectory[-1]
     expert_feature_expectation = sum_expert_feature_expectation / num_trajectories
-    if num_features == 5:
-        return expert_feature_expectation
-    else:  # In this case, the number of feature is 4 and we don't consider the hop count.
-        return np.concatenate((expert_feature_expectation[0], expert_feature_expectation[2:]), axis=None)
-        # return np.delete(expert_feature_expectation, 1, axis=0)
+    # if num_features == 5:
+    return expert_feature_expectation
+    # else:  # In this case, the number of feature is 4 and we don't consider the hop count.
+    #     return np.concatenate((expert_feature_expectation[0], expert_feature_expectation[2:]), axis=None)
+    # return np.delete(expert_feature_expectation, 1, axis=0)
 
 
 def optimization(policy_expert, policies_agent):
@@ -213,6 +225,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
                       "Interference on UAV: ", interference, '\n',
                       "SINR: ", sinr, '\n',
                       "Throughput: ", throughput, '\n',
+                      "Max Throughput: ", max_throughput, '\n',
                       "Interference on Neighbor UEs: ", interference_ues)
 
             features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
@@ -220,8 +233,8 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             # features_current_state = phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
 
             # Choose an action based on epsilon-greedy
-            # if random.random() < epsilon_decay:
-            if random.random() < epsilon_grd:
+            # if random.random() < epsilon_grd:
+            if random.random() < epsilon_decay:
                 action = randint(0, len(action_list)-1)
             else:
                 # Bring the model here for the greedy action
@@ -254,6 +267,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
                       "Interference on UAV: ", interference_next, '\n',
                       "SINR: ", sinr_next, '\n',
                       "Throughput: ", throughput_next, '\n',
+                      "Max Throughput: ", max_throughput_next, '\n',
                       "Interference on Neighbor UEs: ", interference_ues_next)
             features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
                                                ues_objects=ues_objects)
@@ -350,14 +364,13 @@ def build_neural_network():
 
 
 def get_features(cell, cell_objects, uav, ues_objects):
-    phi_distance = 1 - np.power((cell_objects[cell].get_distance()) / dist_limit, 2.)
+    phi_distance = 1 - np.power((cell_objects[cell].get_distance()) / MAX_DISTANCE, 2.)
     phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
-    # for neighbor in cell_objects[state].get_neighbor():
-    #     num_neighbors_ues += len(cell_objects[neighbor].get_ues_idx())
     num_neighbors_ues = cell_objects[cell].get_num_neighbor_ues()
-    phi_ues = np.exp(-num_neighbors_ues/4)
+    phi_ues = 1 - np.power((num_neighbors_ues - MIN_UE_NEIGHBORS) / (MAX_UE_NEIGHBORS - MIN_UE_NEIGHBORS), 2)
     phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
-    phi_interference = np.exp(-uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects))
+    interference_on_ues = uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects)
+    phi_interference = 1 - np.power((interference_on_ues - MIN_INTERFERENCE) / (MAX_INTERFERENCE - MIN_INTERFERENCE), 2)
     if num_features == 5:
         return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
     else:  # In this case, the number of feature is 4 and we don't consider the hop count.

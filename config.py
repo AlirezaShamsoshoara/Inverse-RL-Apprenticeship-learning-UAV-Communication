@@ -11,15 +11,18 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'IRL'
-# Different Modes {"Expert", "IRL", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL", "ResultsQRL",
-# "ResultsBC", "ResultShortest", "ResultsRand"}
+Mode = 'IRL_SGD'
+# Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL",
+# "ResultsQRL", "ResultsBC", "ResultShortest", "ResultsRand"}
 
-# Possible number of UEs: 75
+# Possible number of UEs Cluster: 75
 # Possible number of Cells: 25
 Config_General = {'NUM_UAV': 1, 'Size': 5, 'NUM_CELLS': 25, 'NUM_UEs': 75, 'Radius': 10, 'Loc_delta': 2,
                   'FLOAT_ACCURACY': 6, 'Altitude': 50.0}
-Config_requirement = {'dist_limit': Config_General.get('Size') + 3}
+Config_requirement = {'dist_limit': Config_General.get('Size') + 3, 'MAX_DISTANCE': 6, 'MIN_UE_NEIGHBORS': 4,
+                      'MAX_UE_NEIGHBORS': 29, 'MIN_INTERFERENCE': 0.5123281666343314,
+                      'MAX_INTERFERENCE': 14.621335028196711}
+
 movement_actions_list = [1, 2, 3, 4, 5, 6]  # 1: North, 2: North East, 3: South East, 4: South, 5: South West,
 # 6: North West
 Number_of_neighbor_UEs = {'Min': 0, 'Max': 0}
@@ -28,9 +31,9 @@ Number_of_neighbor_UEs = {'Min': 0, 'Max': 0}
 config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}
 
-Config_FLags = {'SAVE_path': True, 'Display_map': True, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
-                'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': True, 'SAVE_MODEL_IRL_SGD': True, 'PLOT_RESULTS': True,
-                'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': True}
+Config_FLags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': True,
+                'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': True, 'SAVE_MODEL_IRL_SGD': True, 'PLOT_RESULTS': True,
+                'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': False}
 
 Config_interference = {'AntennaGain': 100, 'Bandwidth': 50}
 Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 150.0, 200.0], 'UAV_init_energy': 400.0,
