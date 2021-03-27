@@ -66,6 +66,7 @@ MIN_INTERFERENCE = Config_requirement.get('MIN_INTERFERENCE')
 MAX_INTERFERENCE = Config_requirement.get('MAX_INTERFERENCE')
 
 num_required_replays = int(NUM_EPOCHS / 10)
+# num_required_replays = 1500
 for i in range(len(tx_powers) * len(movement_actions_list)):
     action_list.append(i)
 action_array = np.array(action_list, dtype=np.int8)
@@ -91,55 +92,62 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
     random_initial_t = np.linalg.norm(expert_policy_feature_expectation -
                                       np.array(learner_policy_feature_expectation[0]))
-    weights, weights_norm, solution = optimization(expert_policy_feature_expectation,
-                                                   learner_policy_feature_expectation)
-    print("Optimization status is: ", solution.get('status'))
-    if solution.get('status') == "optimal":
-        weight_list.append((weights, weights_norm))
-        solution_list.append(solution)
-        if Config_FLags.get('SAVE_IRL_WEIGHT'):
-            weight_file.write(str(weight_list[-1]))
 
-    # TODO(1): Run another simulation based on the new weights to update the learner policy (Feature expectation policy)
-    # TODO: To run another simulation we can have simple Q learning model or a deep reinforcement learning one
+    while True:
+        weights, weights_norm, solution = optimization(expert_policy_feature_expectation,
+                                                       learner_policy_feature_expectation)
+        print("Optimization status is: ", solution.get('status'))
+        if solution.get('status') == "optimal":
+            weight_list.append((weights, weights_norm))
+            solution_list.append(solution)
+            if Config_FLags.get('SAVE_IRL_WEIGHT'):
+                weight_file.write(str(weight_list[-1]))
+                weight_file_name_np = 'weights_iter_%d_features_%d' % (iter_optimization, num_features)
+                np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
 
-    # model = build_neural_network()
-    if Mode == "IRL_DQN":
-        model_type = "DQN"
-        # trained_models = learner_dqn(model, weights_norm)
-        pass
-    if Mode == "IRL_SGD":
-        model_type = "SGD"
-        trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
+        # TODO(1): Run another simulation based on the new weights to update the learner policy
+        #  (Feature expectation policy) to run another simulation we can have simple Q learning model or
+        #  a deep reinforcement learning one
 
-    # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the current
-    # TODO: (Contd) learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
+        # model = build_neural_network()
+        if Mode == "IRL_DQN":
+            model_type = "DQN"
+            # trained_models = learner_dqn(model, weights_norm)
+            pass
+        if Mode == "IRL_SGD":
+            model_type = "SGD"
+            trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
 
-    trained_models = load_trained_model(learner_index=0)
-    # Another model_Type is "DQN"
-    _, learner_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
-                                                              cell_objects, weights_norm, model_type=model_type)
+        # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the
+        #  current learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
 
-    hyper_distance = np.abs(np.dot(weights_norm, np.asarray(expert_policy_feature_expectation) -
-                                   np.asarray(learner_policy_feature_expectation)))
-    print("Hyper Distance = ", hyper_distance)
-    # TODO: If the distance is less than a threshold, then break the optimization and report the optimal weights
-    # TODO: (Contd) and the optimal policy based on the imported weights else go to TODO(1)
-    if hyper_distance < epsilon_opt:
-        # We are done with the Weight learning for the reward function and policy learning.
-        # Now we have to Save the finalized weights for the reward function and also the learned policy for the related
-        # weights.
-        pass
-    else:
-        # We have to find the weights again based on the updated learner_policy_feature_expectation
-        pass
+        trained_models = load_trained_model(learner_index=iter_optimization)
+        # Another model_Type is "DQN"
+        _, tested_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
+                                                                  cell_objects, weights_norm, model_type=model_type)
+        learner_policy_feature_expectation.append(tested_policy_feature_expectation.tolist())
 
-    # TODO: Run the last simulation with the optimal weights for the evaluation and result comparison with other methods
+        hyper_distance = np.abs(np.dot(weights_norm, np.asarray(expert_policy_feature_expectation) -
+                                       np.asarray(learner_policy_feature_expectation[-1])))
+        print("Hyper Distance = ", hyper_distance)
+
+        # TODO: If the distance is less than a threshold, then break the optimization and report the optimal weights
+        # TODO: (Contd) and the optimal policy based on the imported weights else go to TODO(1)
+        if hyper_distance < epsilon_opt:
+            # We are done with the Weight learning for the reward function and policy learning.
+            # Now we have to Save the finalized weights for the reward function and also the learned policy for the
+            # related weights.
+            break
+        else:
+            # We have to find the weights again based on the updated learner_policy_feature_expectation. Going up to the
+            # beginning of the loop
+            pass
+        iter_optimization += 1
+
+    # TODO: Run the last simulation with the optimal weights for the evaluation and result comparison with other
+    #  methods
 
     weight_file.close()
-    if Config_FLags.get('SAVE_IRL_WEIGHT'):
-        weight_file_name_np = 'weights_iter_%d_features_%d' % (iter_optimization, num_features)
-        np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
 
 
 def load_expert_feature_expectation():
@@ -298,8 +306,8 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             prev_cell = new_cell
             distance += 1
 
-        if epsilon_decay > 0.01 and episode > num_required_replays:
-            epsilon_decay -= (1 / NUM_EPOCHS)
+        if epsilon_decay > 0.001 and episode > num_required_replays:
+            epsilon_decay -= (2 / NUM_EPOCHS)
 
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
