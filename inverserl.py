@@ -79,11 +79,15 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
     model_type = None
     weight_list = []
     solution_list = []
+    trained_models = None
     iter_optimization = 0
     weight_file_name_txt = 'weights_features_%d.txt' % num_features
     weight_file = open(WeightPath + weight_file_name_txt, 'w')
 
     expert_policy_feature_expectation = load_expert_feature_expectation()
+    # expert_policy_feature_expectation = [Dist, UE, Throughput, Interference]
+    # expert_policy_feature_expectation = [3.58176013, 5.23393083, 3.98191515, 5.21681946]
+
     # Just some random feature expectation for the learner:
     if num_features == 5:
         learner_policy_feature_expectation = [[4.75239812, 3.12983145, 0.12987357, 0.98712345, 6.90207523]]
@@ -116,15 +120,17 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
             pass
         if Mode == "IRL_SGD":
             model_type = "SGD"
+            # [3.58176013, 5.23393083, 3.98191515, 5.21681946]
+            # weights_norm = np.asarray([0.33, 0.25, 0.33, 0.25])
             trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
 
         # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the
         #  current learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
 
-        trained_models = load_trained_model(learner_index=iter_optimization)
+        # trained_models = load_trained_model(learner_index=iter_optimization)
         # Another model_Type is "DQN"
         _, tested_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
-                                                                  cell_objects, weights_norm, model_type=model_type)
+                                                                 cell_objects, weights_norm, model_type=model_type)
         learner_policy_feature_expectation.append(tested_policy_feature_expectation.tolist())
 
         hyper_distance = np.abs(np.dot(weights_norm, np.asarray(expert_policy_feature_expectation) -
@@ -179,24 +185,35 @@ def optimization(policy_expert, policies_agent):
     length = len(policy_expert)
     p = matrix(2.0 * np.eye(length), tc='d')
     q = matrix(np.zeros(length), tc='d')
-
+    status = None
+    removed_policy = []
+    solution_weights = None
     policy_subject = [policy_expert]
     h_subject = [1]
     for policy in policies_agent:
         policy_subject.append(policy)
         h_subject.append(1)
 
-    policy_subject_mat = np.array(policy_subject)
-    policy_subject_mat[0] = -1 * policy_subject_mat[0]
+    while status != "optimal":
+        policy_subject_mat = np.array(policy_subject)
+        policy_subject_mat[0] = -1 * policy_subject_mat[0]
 
-    g = matrix(policy_subject_mat, tc='d')
-    h = matrix(-np.array(h_subject), tc='d')
-    solution_weights = solvers.qp(p, q, g, h)
-    if solution_weights['status'] == "optimal":
+        g = matrix(policy_subject_mat, tc='d')
+        h = matrix(-np.array(h_subject), tc='d')
+        solution_weights = solvers.qp(p, q, g, h, solver='mosek')
+        status = solution_weights['status']
+
+        if status != "optimal":
+            removed_policy.append(policy_subject.pop(1))
+            h_subject.pop()
+            print(" ********* Pop and removing the oldest policy to have optimal solution")
+
+    if status == "optimal":
         weights = np.squeeze(np.asarray(solution_weights['x']))
         weights_normalized = weights / np.linalg.norm(weights)
         return weights, weights_normalized, solution_weights
     else:
+        exit(' ........... Exit: Could not find the optimal solution')
         return None, None, solution_weights
 
 
@@ -306,8 +323,11 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             prev_cell = new_cell
             distance += 1
 
-        if epsilon_decay > 0.001 and episode > num_required_replays:
-            epsilon_decay -= (2 / NUM_EPOCHS)
+        # if epsilon_decay > 0.001 and episode > num_required_replays:
+        #     epsilon_decay -= (2 / NUM_EPOCHS)
+
+        if epsilon_decay > 0.1 and episode > num_required_replays:
+            epsilon_decay -= (1 / NUM_EPOCHS)
 
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
@@ -451,16 +471,16 @@ def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weight
             current_cell = uav.get_cell_id()
             interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
                                                                                                     ues_objects)
-            if Config_FLags.get('PRINT_INFO'):
-                print("\n********** INFO:\n",
-                      "Episode: ", episode + 1, '\n',
-                      "Distance: ", distance, '\n',
-                      "Current Cell:", current_cell, '\n',
-                      "Current State \n",
-                      "Interference on UAV: ", interference, '\n',
-                      "SINR: ", sinr, '\n',
-                      "Throughput: ", throughput, '\n',
-                      "Interference on Neighbor UEs: ", interference_ues)
+            # if Config_FLags.get('PRINT_INFO'):
+            print("\n********** INFO:\n",
+                  "Episode: ", episode + 1, '\n',
+                  "Distance: ", distance, '\n',
+                  "Current Cell:", current_cell, '\n',
+                  "Current State \n",
+                  "Interference on UAV: ", interference, '\n',
+                  "SINR: ", sinr, '\n',
+                  "Throughput: ", throughput, '\n',
+                  "Interference on Neighbor UEs: ", interference_ues)
             features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
                                                   ues_objects=ues_objects)
 
@@ -489,16 +509,16 @@ def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weight
 
             interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
                 uav.uav_perform_task(cell_objects, ues_objects)
-            if Config_FLags.get('PRINT_INFO'):
-                print("\n********** INFO:\n",
-                      "Episode: ", episode + 1, '\n',
-                      "Distance: ", distance + 1, '\n',
-                      "New Cell:", new_cell, '\n',
-                      "Next State \n",
-                      "Interference on UAV: ", interference_next, '\n',
-                      "SINR: ", sinr_next, '\n',
-                      "Throughput: ", throughput_next, '\n',
-                      "Interference on Neighbor UEs: ", interference_ues_next)
+            # if Config_FLags.get('PRINT_INFO'):
+            print("\n********** INFO:\n",
+                  "Episode: ", episode + 1, '\n',
+                  "Distance: ", distance + 1, '\n',
+                  "New Cell:", new_cell, '\n',
+                  "Next State \n",
+                  "Interference on UAV: ", interference_next, '\n',
+                  "SINR: ", sinr_next, '\n',
+                  "Throughput: ", throughput_next, '\n',
+                  "Interference on Neighbor UEs: ", interference_ues_next)
             features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
                                                ues_objects=ues_objects)
             learner_feature_expectation[episode, :] += get_feature_expectation(features_next_state, distance)
