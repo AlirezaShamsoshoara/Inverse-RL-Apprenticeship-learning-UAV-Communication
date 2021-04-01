@@ -11,7 +11,7 @@ import numpy as np
 from config import Config_IRL
 from config import Config_Path
 import matplotlib.pyplot as plt
-from config import Config_FLags
+from config import Config_Flags
 
 
 #########################################################
@@ -63,7 +63,7 @@ def plot_reward_irl(trajectories, learner_index):
     file_fig_pdf = ResultPathPDF + 'accumulative_reward_training_Feature_%d_learner_%d_EPOCHS_%d.pdf' % \
                    (num_features, learner_index, num_epochs)
 
-    if Config_FLags.get("SAVE_PLOT_PDF"):
+    if Config_Flags.get("SAVE_PLOT_PDF"):
         fig_reward.savefig(file_fig_pdf, bbox_inches='tight')
-    if Config_FLags.get("SAVE_PLOT_FIG"):
+    if Config_Flags.get("SAVE_PLOT_FIG"):
         pickle.dump(fig_reward, open(file_fig_obj, 'wb'))

@@ -19,7 +19,7 @@ from random import randint
 from config import Config_IRL
 from config import Config_Path
 from config import Config_Power
-from config import Config_FLags
+from config import Config_Flags
 from location import reset_axes
 from location import update_axes
 from config import Config_General
@@ -37,17 +37,14 @@ from tensorflow.keras.layers import Dense, Activation, Dropout
 
 #########################################################
 # General Parameters
-seed(1369)
-cell_source = 0
-action_list = []
-num_cells = Config_General.get('NUM_CELLS')
-cell_destination = num_cells - 1
 NUM_PLAY = Config_IRL.get('NUM_PLAY')
+LOAD_IRL = Config_Flags.get('LOAD_IRL')
 BATCH_SIZE = Config_IRL.get('BATCH_SIZE')
 NUM_EPOCHS = Config_IRL.get('NUM_EPOCHS')
 INIT_LR = Config_IRL.get('LEARNING_RATE')
 ExpertPath = Config_Path.get('ExpertPath')
 WeightPath = Config_Path.get('WeightPath')
+num_cells = Config_General.get('NUM_CELLS')
 num_states = Config_General.get('NUM_CELLS')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
@@ -65,6 +62,10 @@ MAX_UE_NEIGHBORS = Config_requirement.get('MAX_UE_NEIGHBORS')
 MIN_INTERFERENCE = Config_requirement.get('MIN_INTERFERENCE')
 MAX_INTERFERENCE = Config_requirement.get('MAX_INTERFERENCE')
 
+seed(1369)
+cell_source = 0
+action_list = []
+cell_destination = num_cells - 1
 num_required_replays = int(NUM_EPOCHS / 10)
 # num_required_replays = 1500
 for i in range(len(tx_powers) * len(movement_actions_list)):
@@ -98,36 +99,42 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
                                       np.array(learner_policy_feature_expectation[0]))
 
     while True:
-        weights, weights_norm, solution = optimization(expert_policy_feature_expectation,
-                                                       learner_policy_feature_expectation)
-        print("Optimization status is: ", solution.get('status'))
-        if solution.get('status') == "optimal":
-            weight_list.append((weights, weights_norm))
-            solution_list.append(solution)
-            if Config_FLags.get('SAVE_IRL_WEIGHT'):
-                weight_file.write(str(weight_list[-1]))
-                weight_file_name_np = 'weights_iter_%d_features_%d' % (iter_optimization, num_features)
-                np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
+        if LOAD_IRL:
+            weights, weights_norm, solution = load_weight_irl(iter_optimization)
+        else:
+            weights, weights_norm, solution = optimization(expert_policy_feature_expectation,
+                                                           learner_policy_feature_expectation)
+            print("Optimization status is: ", solution.get('status'))
+            if solution.get('status') == "optimal":
+                weight_list.append((weights, weights_norm))
+                solution_list.append(solution)
+                if Config_Flags.get('SAVE_IRL_WEIGHT'):
+                    weight_file.write(str(weight_list[-1]))
+                    weight_file_name_np = 'weights_iter_%d_features_%d' % (iter_optimization, num_features)
+                    np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
 
         # TODO(1): Run another simulation based on the new weights to update the learner policy
         #  (Feature expectation policy) to run another simulation we can have simple Q learning model or
         #  a deep reinforcement learning one
-
-        # model = build_neural_network()
-        if Mode == "IRL_DQN":
-            model_type = "DQN"
-            # trained_models = learner_dqn(model, weights_norm)
-            pass
-        if Mode == "IRL_SGD":
-            model_type = "SGD"
-            # [3.58176013, 5.23393083, 3.98191515, 5.21681946]
-            # weights_norm = np.asarray([0.33, 0.25, 0.33, 0.25])
-            trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects, iter_optimization)
+        if not LOAD_IRL:
+            # model = build_neural_network()
+            if Mode == "IRL_DQN":
+                model_type = "DQN"
+                # trained_models = learner_dqn(model, weights_norm)
+                pass
+            if Mode == "IRL_SGD":
+                model_type = "SGD"
+                # [3.58176013, 5.23393083, 3.98191515, 5.21681946]
+                # weights_norm = np.asarray([0.33, 0.25, 0.33, 0.25])
+                trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects,
+                                                iter_optimization)
 
         # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the
         #  current learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
 
-        # trained_models = load_trained_model(learner_index=iter_optimization)
+        if LOAD_IRL:
+            model_type = "SGD"
+            trained_models = load_trained_model(learner_index=iter_optimization)
         # Another model_Type is "DQN"
         _, tested_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
                                                                  cell_objects, weights_norm, model_type=model_type)
@@ -241,7 +248,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             # Calculate the current state
             interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
                                                                                                     ues_objects)
-            if Config_FLags.get('PRINT_INFO'):
+            if Config_Flags.get('PRINT_INFO'):
                 print("\n********** INFO:\n",
                       "Episode: ", episode + 1, '\n',
                       "Distance: ", distance, '\n',
@@ -283,7 +290,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
                 uav.uav_perform_task(cell_objects, ues_objects)
 
-            if Config_FLags.get('PRINT_INFO'):
+            if Config_Flags.get('PRINT_INFO'):
                 print("\n********** INFO:\n",
                       "Episode: ", episode + 1, '\n',
                       "Distance: ", distance + 1, '\n',
@@ -341,16 +348,16 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
     trajectories.append(learner_index)
 
     # TODO: I have to plot the reward behavior in one simulation to see how they have improvement and convergence.
-    if Config_FLags.get("PLOT_RESULTS"):
+    if Config_Flags.get("PLOT_RESULTS"):
         plot_reward_irl(trajectories, learner_index)
 
     # TODO: I have to save the trajectories' information on numpy files (Drive) for later evaluation
-    if Config_FLags.get("SAVE_IRL_DATA"):
+    if Config_Flags.get("SAVE_IRL_DATA"):
         learner_irl_file_name_np = 'Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features, learner_index, NUM_EPOCHS)
         np.savez(InverseRLPath + learner_irl_file_name_np, trajectories=trajectories)
 
     # TODO: Let's save the SGD models for later
-    if Config_FLags.get('SAVE_MODEL_IRL_SGD'):
+    if Config_Flags.get('SAVE_MODEL_IRL_SGD'):
         file_sgd_models_save = SGDModelPath + 'SGD_Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features,
                                                                                              learner_index, NUM_EPOCHS)
         pickle.dump(sgd_models, open(file_sgd_models_save, 'wb'))
@@ -434,7 +441,7 @@ def update_sgd_models(sgd_models, features_state, action, target, std_scale):
     std_scale.partial_fit(np.array(features_state).reshape(1, -1))
     # features_state_scaled = std_scale.transform(np.array(features_state).reshape(1, -1))
     features_state_scaled = np.array(features_state).reshape(1, -1)
-    if Config_FLags.get('PRINT_INFO'):
+    if Config_Flags.get('PRINT_INFO'):
         print("features_state = ", features_state, '\n'
               "features_state_scaled = ", features_state_scaled)
     sgd_models[action].partial_fit(features_state_scaled, [target])
@@ -471,7 +478,7 @@ def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weight
             current_cell = uav.get_cell_id()
             interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
                                                                                                     ues_objects)
-            # if Config_FLags.get('PRINT_INFO'):
+            # if Config_Flags.get('PRINT_INFO'):
             print("\n********** INFO:\n",
                   "Episode: ", episode + 1, '\n',
                   "Distance: ", distance, '\n',
@@ -509,7 +516,7 @@ def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weight
 
             interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
                 uav.uav_perform_task(cell_objects, ues_objects)
-            # if Config_FLags.get('PRINT_INFO'):
+            # if Config_Flags.get('PRINT_INFO'):
             print("\n********** INFO:\n",
                   "Episode: ", episode + 1, '\n',
                   "Distance: ", distance + 1, '\n',
@@ -547,3 +554,10 @@ def load_trained_model(learner_index):
     with open(file_sgd_models_save, "rb") as file_obj:
         models = pickle.load(file_obj)
     return models
+
+
+def load_weight_irl(iter_optimization):
+    weight_file_name_np = 'weights_iter_%d_features_%d.npz' % (iter_optimization, num_features)
+    weight, weight_norm = np.load(WeightPath + weight_file_name_np).get('weight_list')[0][0], \
+                          np.load(WeightPath + weight_file_name_np).get('weight_list')[0][1]
+    return weight, weight_norm, None

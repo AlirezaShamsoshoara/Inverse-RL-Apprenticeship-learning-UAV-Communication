@@ -8,7 +8,7 @@
 # import libraries
 import numpy as np
 import matplotlib.pyplot as plt
-from config import Config_FLags
+from config import Config_Flags
 from config import Config_General
 from utils import power_to_radius
 from hexalattice.hexalattice import *
@@ -68,7 +68,7 @@ def plotues(fig_cells, ax_cells, cell_ids, hcoord, vcoord):
     x_coord_ues, y_coord_ues = geo_data_75ues_25cells(hcoord, vcoord)
     ax_cells.scatter(x_coord_ues[:], y_coord_ues[:], color='m', edgecolors='none', marker='o')
     # ax_cells.scatter(x_coord_ues, y_coord_ues, color='m', alpha=0.01)
-    if Config_FLags.get('Display_map'):
+    if Config_Flags.get('Display_map'):
         plt.show(block=False)
     return fig_cells, ax_cells, x_coord_ues, y_coord_ues
 
@@ -189,7 +189,7 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
     ax_objects.artists[0].set_radius(tx_radius)
     dx, dy = action_to_arrow(action)
 
-    if Config_FLags.get('SingleArrow'):
+    if Config_Flags.get('SingleArrow'):
         # ***************************************
         # Just the latest(recent) arrow or action
         arrow = Arrow(arrow_center[0], arrow_center[1], dx, dy, width=3, fc='k')

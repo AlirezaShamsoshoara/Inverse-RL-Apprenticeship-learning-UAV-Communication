@@ -8,7 +8,7 @@
 # import libraries
 from random import seed
 from random import randint
-from config import Config_FLags
+from config import Config_Flags
 import matplotlib.pyplot as plt
 from config import Config_Power
 from location import update_axes
@@ -29,7 +29,7 @@ dist_limit = Config_requirement.get('dist_limit')
 
 def random_action(uav, ues_objects, ax_objects, cell_objects):
     print(" ****** Mode: Random policy by the drone ")
-    Config_FLags['SingleArrow'] = True
+    Config_Flags['SingleArrow'] = True
     seed(1732)
     prev_cell = 1
     distance = 0

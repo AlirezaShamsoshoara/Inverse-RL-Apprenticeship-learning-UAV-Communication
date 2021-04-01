@@ -31,9 +31,9 @@ Number_of_neighbor_UEs = {'Min': 0, 'Max': 0}
 config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}
 
-Config_FLags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
-                'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': True, 'SAVE_MODEL_IRL_SGD': True, 'PLOT_RESULTS': True,
-                'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': False}
+Config_Flags = {'SAVE_path': True, 'Display_map': True, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
+                'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': True, 'PLOT_RESULTS': True,
+                'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': False, 'LOAD_IRL': True}
 
 Config_interference = {'AntennaGain': 100, 'Bandwidth': 50}
 Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 150.0, 200.0], 'UAV_init_energy': 400.0,
