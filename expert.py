@@ -24,11 +24,9 @@ from config import Number_of_neighbor_UEs
 
 #########################################################
 # General Parameters
-num_cells = Config_General.get('NUM_CELLS')
-cell_source = 0
-cell_destination = num_cells - 1
 gamma = Config_IRL.get('GAMMA_FEATURES')
 ExpertPath = Config_Path.get('ExpertPath')
+num_cells = Config_General.get('NUM_CELLS')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
 dist_limit = Config_requirement.get('dist_limit')
@@ -40,6 +38,8 @@ MAX_UE_NEIGHBORS = Config_requirement.get('MAX_UE_NEIGHBORS')
 MIN_INTERFERENCE = Config_requirement.get('MIN_INTERFERENCE')
 MAX_INTERFERENCE = Config_requirement.get('MAX_INTERFERENCE')
 
+cell_source = 0
+cell_destination = num_cells - 1
 #########################################################
 # Function definition
 
@@ -135,7 +135,7 @@ def get_features_draft(state, cell_objects, uav, ues_objects):
         return phi_distance, phi_ues, phi_throughput, phi_interference
 
 
-def get_features(state, cell_objects, uav, ues_objects):
+def get_features_draft2(state, cell_objects, uav, ues_objects):
     phi_distance = 1 - np.power((cell_objects[state].get_distance()) / MAX_DISTANCE, 2.)
     phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
     num_neighbors_ues = cell_objects[state].get_num_neighbor_ues()
@@ -147,6 +147,25 @@ def get_features(state, cell_objects, uav, ues_objects):
         return phi_distance, phi_hop, phi_ues, phi_throughput, phi_interference
     else:  # In this case, the number of feature is 4 and we don't consider the hop count.
         return phi_distance, phi_ues, phi_throughput, phi_interference
+
+
+def get_features(state, cell_objects, uav, ues_objects):
+    phi_distance = 1 - np.power((cell_objects[state].get_distance()) / MAX_DISTANCE, 2.)
+    phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
+    num_neighbors_ues = cell_objects[state].get_num_neighbor_ues()
+    phi_ues = np.power((num_neighbors_ues - MIN_UE_NEIGHBORS)/(MAX_UE_NEIGHBORS - MIN_UE_NEIGHBORS), 2)
+    phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
+    interference_on_ues = uav.calc_interference_ues(cells_objects=cell_objects, ues_objects=ues_objects)
+    phi_interference = np.power((interference_on_ues - MIN_INTERFERENCE)/(MAX_INTERFERENCE - MIN_INTERFERENCE), 2)
+    if state == cell_destination:
+        phi_success = 5.0
+    else:
+        phi_success = 0.0
+
+    if num_features == 5:
+        return phi_distance, phi_success, phi_ues, phi_throughput, phi_interference
+    else:  # In this case, the number of feature is 4 and we don't consider the hop count.
+        return phi_success, phi_ues, phi_throughput, phi_interference
 
 
 def get_feature_expectation(features, distance):
