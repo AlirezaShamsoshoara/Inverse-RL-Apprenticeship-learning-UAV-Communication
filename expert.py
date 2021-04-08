@@ -150,7 +150,7 @@ def get_features_draft2(state, cell_objects, uav, ues_objects):
 
 
 def get_features(state, cell_objects, uav, ues_objects):
-    phi_distance = 1 - np.power((cell_objects[state].get_distance()) / MAX_DISTANCE, 2.)
+    phi_distance = np.power((cell_objects[state].get_distance()) / MAX_DISTANCE, 2.)
     phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
     num_neighbors_ues = cell_objects[state].get_num_neighbor_ues()
     phi_ues = np.power((num_neighbors_ues - MIN_UE_NEIGHBORS)/(MAX_UE_NEIGHBORS - MIN_UE_NEIGHBORS), 2)

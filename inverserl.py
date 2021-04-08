@@ -17,6 +17,7 @@ from copy import deepcopy
 from cvxopt import solvers
 from random import randint
 from config import Config_IRL
+from datetime import datetime
 from config import Config_Path
 from config import Config_Power
 from config import Config_Flags
@@ -87,12 +88,12 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
 
     expert_policy_feature_expectation = load_expert_feature_expectation()
     # expert_policy_feature_expectation = [Dist, 		  Success, 		UE, 		Throughput,  Interference]
-    # expert_policy_feature_expectation(5) = [5.00947727 4.9700749  0.29048563 5.12332752 0.31299007]
+    # expert_policy_feature_expectation(5) = [5.00947727 4.9700749  0.29048563 4.52332752 0.31299007]
     # expert_policy_feature_expectation(4) = [4.9700749  0.29048563 5.12332752 0.31299007] # no Dist
 
     # Just some random feature expectation for the learner:
     if num_features == 5:
-        learner_policy_feature_expectation = [[5.29947727, 4.2700749, 0.49048563, 6.12332752, 0.61299007]]
+        learner_policy_feature_expectation = [[1.96955769, 4.2700749, 0.49048563, 4.52332752, 0.51299007]]
     else:  # In this case, the number of feature is 4 and we don't consider the hop count(distance).
         learner_policy_feature_expectation = [[4.2700749, 0.49048563, 6.12332752, 0.61299007]]
 
@@ -128,7 +129,7 @@ def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
             if Mode == "IRL_SGD":
                 model_type = "SGD"
                 # [5.00947727 4.9700749  0.29048563 5.12332752 0.31299007]
-                # weights_norm = np.asarray([0.33, 0.25, 0.33, 0.25])
+                # weights_norm = np.asarray([6.80128574e-06,  0.86679868, -9.62677292e-01, 2.55648174e-02, -0.42602828])
                 # trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects,
                 #                                 iter_optimization)
                 trained_models = learner_lfa_ql_unlimited_dist(weights_norm, uav, ues_objects, ax_objects, cell_objects,
@@ -430,7 +431,7 @@ def get_features_draft(cell, cell_objects, uav, ues_objects):
 
 
 def get_features(cell, cell_objects, uav, ues_objects):
-    phi_distance = 1 - np.power((cell_objects[cell].get_distance()) / MAX_DISTANCE, 2.)
+    phi_distance = np.power((cell_objects[cell].get_distance()) / MAX_DISTANCE, 2.)
     # phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
     num_neighbors_ues = cell_objects[cell].get_num_neighbor_ues()
     phi_ues = np.power((num_neighbors_ues - MIN_UE_NEIGHBORS)/(MAX_UE_NEIGHBORS - MIN_UE_NEIGHBORS), 2)
@@ -458,9 +459,11 @@ def create_sgd_models(num_actions, std_scale):
     #  some errors because we are doing the first predict before the first update. If we don't do that, we probably
     #  get some errors.
     if num_features == 5:
-        initial_values_features = np.array([0.4375, 1.0, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
+        initial_values_features = \
+            np.array([0.6944444444444445, 0.0, 0.0256, 0.6280412430050324, 0.03287622045477716]).reshape(1, -1)
     else:  # In this case, the number of feature is 4 and we don't consider the hop count.
-        initial_values_features = np.array([0.4375, 0.1353352832366127, 0.0, 1.0]).reshape(1, -1)
+        initial_values_features = \
+            np.array([0.0, 0.0256, 0.6280412430050324, 0.03287622045477716]).reshape(1, -1)
 
     # std_scale.partial_fit(initial_values_features)
     # initial_values_features_scaled = std_scale.transform(initial_values_features)
@@ -558,6 +561,7 @@ def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weight
                   "Distance: ", distance + 1, '\n',
                   "New Cell:", new_cell, '\n',
                   "Next State \n",
+                  "Action_power: ", action_power, '\n',
                   "Interference on UAV: ", interference_next, '\n',
                   "SINR: ", sinr_next, '\n',
                   "Throughput: ", throughput_next, '\n',
@@ -607,7 +611,7 @@ def learner_lfa_ql_unlimited_dist(weights, uav, ues_objects, ax_objects, cell_ob
     # Q learning with Linear Function Approximation
     std_scale = StandardScaler()  # we should use partial_fit
     episode = 0
-    dist_infinite = 500
+    dist_infinite = 10000
     trajectories = []
     arrow_patch_list = []
     epsilon_decay = 1
@@ -716,16 +720,19 @@ def learner_lfa_ql_unlimited_dist(weights, uav, ues_objects, ax_objects, cell_ob
         # if epsilon_decay > 0.001 and episode > num_required_replays:
         #     epsilon_decay -= (2 / NUM_EPOCHS)
 
-        if epsilon_decay > 0.5 and episode > num_required_replays:
+        if epsilon_decay > 0.65 and episode > num_required_replays:
             epsilon_decay -= (1 / NUM_EPOCHS)
 
         # trajectory.append(learner_feature_expectation)
         # trajectories.append(trajectory)
         episode += 1
         if episode % 200 == 0:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
             timer_end = time.perf_counter()
-            print(" ......... EPISODE = ", episode, "......... ELAPSED TIME = ", round(timer_end - timer_start, 2),
-                  " Seconds, ", round((timer_end - timer_start)/60, 2), " mins, ",
+            print(" ......... EPISODE = ", episode, "......... Current Time = ", current_time,
+                  " ..... ELAPSED TIME = ", round(timer_end - timer_start, 2), " Seconds, ",
+                  round((timer_end - timer_start)/60, 2), " mins, ",
                   round((timer_end - timer_start)/3600, 2), " hour")
 
     if Config_Flags.get("PLOT_RESULTS"):
