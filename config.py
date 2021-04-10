@@ -47,7 +47,7 @@ Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 10002, 'NUM_PLAY': 1, 'NUM_TRAJEC
               'EPSILON_OPTIMIZATION': 0.01, 'LEARNING_RATE': 1e-3, 'BATCH_SIZE': 100, 'EPSILON_GREEDY': 0.1,
               'GAMMA_DISCOUNT': 0.9}
 
-Config_BehavioralCloning = {'NUM_TRAJECTORIES_EXPERT': 10000}
+Config_BehavioralCloning = {'NUM_TRAJECTORIES_EXPERT': 100000}
 
 Config_QRL = {}
 Config_DRL = {}

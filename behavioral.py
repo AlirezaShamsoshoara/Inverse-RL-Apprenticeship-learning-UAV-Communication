@@ -10,6 +10,8 @@ import time
 import numpy as np
 from tqdm import tqdm
 from random import seed
+from sklearn import svm
+from sklearn import tree
 from datetime import datetime
 from config import Config_IRL
 from config import Config_Path
@@ -19,6 +21,7 @@ from location import reset_axes
 import matplotlib.pyplot as plt
 from location import update_axes
 from config import Config_General
+from xgboost import XGBClassifier
 from config import Config_requirement
 from config import movement_actions_list
 from config import Number_of_neighbor_UEs
@@ -28,6 +31,7 @@ from sklearn.metrics import accuracy_score
 from config import Config_BehavioralCloning
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingClassifier
 
 #########################################################
 # General Parameters
@@ -52,7 +56,7 @@ cell_destination = num_cells - 1
 
 def behavioral_cloning(uav, ues_objects, ax_objects, cell_objects):
 
-    trajectories = load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_data=False)
+    trajectories = load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_data=True)
 
     model = train_model(trajectories)
     imitation_behavioral_cloning(model)
@@ -212,13 +216,43 @@ def train_model(trajectories):
         y_input[index] = trajectory[1]
 
     train_x, test_x, train_y, test_y = train_test_split(x_input, y_input, test_size=0.2)
+    train_x_rounded, test_x_rounded, train_y_rounded, test_y_rounded = np.round(train_x, 2), np.round(test_x, 2), \
+                                                                       np.round(train_y, 2), np.round(test_y, 2)
+
     clf_sgd = SGDClassifier(loss="hinge", penalty="l2")
     clf_sgd.fit(train_x, train_y)
 
-    y_predicted = clf_sgd.predict(test_x)
-    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted)))
-    return clf_sgd
+    y_predicted_sgd = clf_sgd.predict(test_x)
+    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_sgd)))
+
+    clf_svm = svm.SVC(decision_function_shape='ovo')
+    clf_svm.fit(train_x, train_y)
+    y_predicted_svm = clf_svm.predict(test_x)
+    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_svm)))
+
+    clf_tree = tree.DecisionTreeClassifier()
+    clf_tree = clf_tree.fit(train_x, train_y)
+    y_predicted_tree = clf_tree.predict(test_x)
+    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_tree)))
+
+    clf_gradient_boosting_classifier = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1,
+                                                                  random_state=0).fit(train_x, train_y)
+    clf_gradient_boosting_classifier.score(test_x, test_y)
+
+    # clf_gradient_boosting_classifier_rounded = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0,
+    #                                                                       max_depth=1,
+    #                                                                       random_state=0).fit(train_x_rounded,
+    #                                                                                           train_y_rounded)
+    # clf_gradient_boosting_classifier_rounded.score(test_x_rounded, test_y_rounded)
+
+    clf_xgb = XGBClassifier().fit(train_x, train_y)
+    y_pred_xgb = clf_xgb.predict(test_x)
+    predictions = [round(value) for value in y_pred_xgb]
+    accuracy_xgb = accuracy_score(test_y, y_pred_xgb)
+    print("Accuracy: %.2f%%" % (accuracy_xgb * 100.0))
+
+    return clf_sgd, clf_svm, clf_gradient_boosting_classifier, clf_xgb
 
 
 def imitation_behavioral_cloning(model):
-    pass
+    return model
