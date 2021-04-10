@@ -66,7 +66,8 @@ if __name__ == "__main__":
     elif Mode == "QRL":
         qrl()
     elif Mode == "BC":
-        behavioral_cloning()
+        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
+        behavioral_cloning(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "Shortest":
         short_path()
     elif Mode == "Random":

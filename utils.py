@@ -433,8 +433,8 @@ def power_to_radius(power):
 
 
 def multi_actions_to_action(action_movement, action_tx):
-    return np.where(action_movement == np.array(movement_actions_list))[0] * len(movement_actions_list) + \
-           np.where(action_tx == np.array(tx_powers))[0]
+    return np.where(action_tx == np.array(tx_powers))[0] * len(movement_actions_list) + \
+           np.where(action_movement == np.array(movement_actions_list))[0]
 
 
 def action_to_multi_actions(action):

@@ -11,7 +11,7 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'IRL_SGD'
+Mode = 'BC'
 # Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL",
 # "ResultsQRL", "ResultsBC", "ResultShortest", "ResultsRand"}
 
@@ -32,8 +32,9 @@ config_movement_step = {'x_step': (Config_General.get('Radius')) * (3./2.),
                         'y_step': (Config_General.get('Radius')) * np.sqrt(3)}
 
 Config_Flags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
-                'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': True, 'SAVE_MODEL_IRL_SGD': True, 'PLOT_RESULTS': True,
-                'SAVE_PLOT_PDF': False, 'SAVE_PLOT_FIG': False, 'PRINT_INFO': False, 'LOAD_IRL': False}
+                'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
+                'SAVE_PLOT_PDF': False, 'SAVE_PLOT_FIG': False, 'PRINT_INFO': False, 'LOAD_IRL': False,
+                'SAVE_DATA_BC_EXPERT': True, 'SAVE_MODEL_BC': True}
 
 Config_interference = {'AntennaGain': 100, 'Bandwidth': 50}
 Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 150.0, 200.0], 'UAV_init_energy': 400.0,
@@ -45,6 +46,8 @@ Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 10002, 'NUM_PLAY': 1, 'NUM_TRAJEC
               'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA_FEATURES': 0.999,
               'EPSILON_OPTIMIZATION': 0.01, 'LEARNING_RATE': 1e-3, 'BATCH_SIZE': 100, 'EPSILON_GREEDY': 0.1,
               'GAMMA_DISCOUNT': 0.9}
+
+Config_BehavioralCloning = {'NUM_TRAJECTORIES_EXPERT': 10000}
 
 Config_QRL = {}
 Config_DRL = {}
@@ -58,6 +61,7 @@ InverseRLPath = "Data/InverseRL/"
 ResultPathPDF = "Results/PDF/"
 ResultPathFIG = "Results/FIG/"
 SGDModelPath = "Data/InverseRL/SGDModel/"
-
+ExpertPath_BC = "Data/BehavioralCloning/"
 Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath, 'InverseRLPath': InverseRLPath,
-               'ResultPathPDF': ResultPathPDF, 'ResultPathFIG': ResultPathFIG, 'SGDModelPath': SGDModelPath}
+               'ResultPathPDF': ResultPathPDF, 'ResultPathFIG': ResultPathFIG, 'SGDModelPath': SGDModelPath,
+               'ExpertPath_BC': ExpertPath_BC}
