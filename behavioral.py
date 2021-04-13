@@ -7,6 +7,7 @@
 #########################################################
 # import libraries
 import time
+import pickle
 import numpy as np
 from tqdm import tqdm
 from random import seed
@@ -36,6 +37,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 #########################################################
 # General Parameters
 num_cells = Config_General.get('NUM_CELLS')
+BCModelPath = Config_Path.get('BCModelPath')
 tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
 ExpertPath_BC = Config_Path.get('ExpertPath_BC')
@@ -55,12 +57,10 @@ cell_destination = num_cells - 1
 
 
 def behavioral_cloning(uav, ues_objects, ax_objects, cell_objects):
-
+    print(" ****** Mode: Behavioral cloning for the drone ")
     trajectories = load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_data=True)
-
-    model = train_model(trajectories)
-    imitation_behavioral_cloning(model)
-    pass
+    models = train_model(trajectories, load_model=True)
+    imitation_behavioral_cloning(uav, ues_objects, ax_objects, cell_objects, models)
 
 
 def load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_data=False):
@@ -207,7 +207,8 @@ def choose_action_expert(cell):
     return action
 
 
-def train_model(trajectories):
+def train_model(trajectories, load_model=False):
+    # Useful links and helps:
     num_trajectories = len(trajectories)
     x_input = np.zeros((num_trajectories, num_features), dtype=float)
     y_input = np.zeros(num_trajectories, dtype=int)
@@ -216,43 +217,140 @@ def train_model(trajectories):
         y_input[index] = trajectory[1]
 
     train_x, test_x, train_y, test_y = train_test_split(x_input, y_input, test_size=0.2)
-    train_x_rounded, test_x_rounded, train_y_rounded, test_y_rounded = np.round(train_x, 2), np.round(test_x, 2), \
-                                                                       np.round(train_y, 2), np.round(test_y, 2)
+    if not load_model:
 
-    clf_sgd = SGDClassifier(loss="hinge", penalty="l2")
-    clf_sgd.fit(train_x, train_y)
+        clf_sgd = SGDClassifier(loss="hinge", penalty="l2")
+        clf_sgd.fit(train_x, train_y)
 
-    y_predicted_sgd = clf_sgd.predict(test_x)
-    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_sgd)))
+        y_predicted_sgd = clf_sgd.predict(test_x)
+        print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_sgd)))
 
-    clf_svm = svm.SVC(decision_function_shape='ovo')
-    clf_svm.fit(train_x, train_y)
-    y_predicted_svm = clf_svm.predict(test_x)
-    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_svm)))
+        clf_svm = svm.SVC(decision_function_shape='ovo')
+        clf_svm.fit(train_x, train_y)
+        y_predicted_svm = clf_svm.predict(test_x)
+        print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_svm)))
 
-    clf_tree = tree.DecisionTreeClassifier()
-    clf_tree = clf_tree.fit(train_x, train_y)
-    y_predicted_tree = clf_tree.predict(test_x)
-    print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_tree)))
+        clf_tree = tree.DecisionTreeClassifier()
+        clf_tree = clf_tree.fit(train_x, train_y)
+        y_predicted_tree = clf_tree.predict(test_x)
+        print('Accuracy: {:.2f}'.format(accuracy_score(test_y, y_predicted_tree)))
 
-    clf_gradient_boosting_classifier = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1,
-                                                                  random_state=0).fit(train_x, train_y)
-    clf_gradient_boosting_classifier.score(test_x, test_y)
+        clf_gradient_boosting_classifier = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1,
+                                                                      random_state=0).fit(train_x, train_y)
+        clf_gradient_boosting_classifier.score(test_x, test_y)
 
-    # clf_gradient_boosting_classifier_rounded = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0,
-    #                                                                       max_depth=1,
-    #                                                                       random_state=0).fit(train_x_rounded,
-    #                                                                                           train_y_rounded)
-    # clf_gradient_boosting_classifier_rounded.score(test_x_rounded, test_y_rounded)
+        clf_xgb = XGBClassifier().fit(train_x, train_y)
+        y_pred_xgb = clf_xgb.predict(test_x)
+        predictions = [round(value) for value in y_pred_xgb]
+        accuracy_xgb = accuracy_score(test_y, y_pred_xgb)
+        print("Accuracy: %.2f%%" % (accuracy_xgb * 100.0))
 
-    clf_xgb = XGBClassifier().fit(train_x, train_y)
-    y_pred_xgb = clf_xgb.predict(test_x)
-    predictions = [round(value) for value in y_pred_xgb]
-    accuracy_xgb = accuracy_score(test_y, y_pred_xgb)
-    print("Accuracy: %.2f%%" % (accuracy_xgb * 100.0))
+        if Config_Flags.get('SAVE_MODEL_BC'):
+            file_bc_models_save = BCModelPath + 'BC_Models_Feature_%d_EPOCHS_%d' % (num_features, NUM_EPISODES)
+            pickle.dump((clf_sgd, clf_svm, clf_tree, clf_gradient_boosting_classifier, clf_xgb),
+                        open(file_bc_models_save, 'wb'))
 
-    return clf_sgd, clf_svm, clf_gradient_boosting_classifier, clf_xgb
+        return clf_sgd, clf_svm, clf_tree, clf_gradient_boosting_classifier, clf_xgb
+    else:
+        file_bc_models_save = BCModelPath + 'BC_Models_Feature_%d_EPOCHS_%d' % (num_features, NUM_EPISODES)
+        with open(file_bc_models_save, "rb") as file_obj:
+            models = pickle.load(file_obj)
+            clf_sgd, clf_svm, clf_tree, clf_gradient_boosting_classifier, clf_xgb = models[0], models[1], models[2],\
+                                                                                    models[3], models[4]
+            y_predicted_sgd = clf_sgd.predict(test_x)
+            print('Accuracy SGD: {:.2f}'.format(accuracy_score(test_y, y_predicted_sgd)))
+            y_predicted_svm = clf_svm.predict(test_x)
+            print('Accuracy SVM: {:.2f}'.format(accuracy_score(test_y, y_predicted_svm)))
+            y_predicted_tree = clf_tree.predict(test_x)
+            print('Accuracy Decision Tree: {:.2f}'.format(accuracy_score(test_y, y_predicted_tree)))
+            gradient_boosting_classifier_result = clf_gradient_boosting_classifier.score(test_x, test_y)
+            print('Accuracy GBC: {:.2f}'.format(gradient_boosting_classifier_result))
+            y_predicted_xgb = clf_xgb.predict(test_x)
+            accuracy_xgb = accuracy_score(test_y, y_predicted_xgb)
+            print("Accuracy XGB: %.2f%%" % (accuracy_xgb * 100.0))
+
+        return models
 
 
-def imitation_behavioral_cloning(model):
-    return model
+def imitation_behavioral_cloning(uav, ues_objects, ax_objects, cell_objects, models):
+    episode = 0
+    prev_cell = 1
+    trajectories = []
+    arrow_patch_list = []
+    timer_start = time.perf_counter()
+    print("......... TOTAL EPOCHS = ", NUM_EPISODES)
+    clf_sgd, clf_svm, clf_tree, clf_gradient_boosting_classifier, clf_xgb = models[0], models[1], models[2], \
+                                                                            models[3], models[4]
+    # fig = plt.figure(figsize=(10, 15))
+    # tree.plot_tree(clf_tree, filled=True)
+    # fig.savefig("file_fig_pdf.pdf", bbox_inches='tight')
+    while episode < NUM_EPISODES:
+        distance = 0
+        done = False
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source,
+                                      cell_destination=cell_destination, arrow_patch_list=arrow_patch_list)
+        uav.uav_reset(cell_objects)
+
+        while distance < dist_limit and not done:
+            cell = uav.get_cell_id()
+            current_state = uav.get_cell_id()
+            current_features = get_features(state=cell, cell_objects=cell_objects, uav=uav, ues_objects=ues_objects)
+            action = clf_xgb.predict(np.array(current_features).reshape(1, -1))
+            trajectories.append((current_features, action))
+
+            action_movement_index, action_tx_index = action_to_multi_actions(action)
+            expert_action_mov = action_movement_index + 1
+            expert_action_power = tx_powers[action_tx_index]
+            avail_actions_mov = cell_objects[cell].get_actions()
+            avail_neighbors = cell_objects[cell].get_neighbor()
+            if np.any(expert_action_mov == np.array(avail_actions_mov)):
+                new_state = avail_neighbors[np.where(expert_action_mov == np.array(avail_actions_mov))[0][0]]
+            else:
+                new_state = current_state
+
+            new_cell = new_state
+            uav.set_cell_id(cid=new_cell)
+            uav.set_location(loc=cell_objects[new_cell].get_location())
+            uav.set_hop(hop=uav.get_hop() + 1)
+            expert_action = multi_actions_to_action(expert_action_mov, expert_action_power)
+            if Config_Flags.get('PRINT_INFO'):
+                print("Chosen Action: ", expert_action, '\n',
+                      "Chosen Mobility: ", expert_action_mov, '\n',
+                      "Chosen Power: ", expert_action_power)
+
+            uav.set_power(tr_power=expert_action_power)
+            interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next, = \
+                uav.uav_perform_task(cell_objects, ues_objects)
+            if Config_Flags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance + 1, '\n',
+                      "New Cell:", new_cell, '\n',
+                      "Next State \n",
+                      "Interference on UAV: ", interference_next, '\n',
+                      "SINR: ", sinr_next, '\n',
+                      "Throughput: ", throughput_next, '\n',
+                      "Max Throughput: ", max_throughput_next, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues_next)
+
+            arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
+                                           expert_action_power, cell_objects[new_cell].get_location(),
+                                           expert_action_mov, cell_objects[cell].get_location(), arrow_patch_list)
+            if Config_Flags.get('Display_map'):
+                plt.pause(0.001)
+            prev_cell = new_cell
+            if new_cell == cell_destination:
+                done = True
+            distance += 1
+
+        episode += 1
+        if episode % 200 == 0:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            timer_end = time.perf_counter()
+            print(" ......... EPISODE = ", episode, "......... Current Time = ", current_time,
+                  " ..... ELAPSED TIME = ", round(timer_end - timer_start, 2), " Seconds, ",
+                  round((timer_end - timer_start) / 60, 2), " mins, ",
+                  round((timer_end - timer_start) / 3600, 2), " hour")
+
+    return 0
