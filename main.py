@@ -25,13 +25,14 @@ from deeprl import deep_rl
 from location import plotues
 from utils import create_ues
 from utils import create_cells
-from inverserlSGD import inverse_rl
 from expert import expert_policy
 from location import plothexagon
 from config import Config_General
 from utils import find_closest_cell
 from shortestpath import short_path
 from randompolicy import random_action
+from inverserlSGD import inverse_rl_sgd
+from inverserlDQN import inverse_rl_dqn
 from behavioral import behavioral_cloning
 
 #########################################################
@@ -58,8 +59,10 @@ if __name__ == "__main__":
     uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
     if Mode == "Expert":
         expert_policy(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
-    elif Mode == "IRL_SGD" or Mode == "IRL_DQN":
-        inverse_rl(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
+    elif Mode == "IRL_SGD":
+        inverse_rl_sgd(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
+    elif Mode == "IRL_DQN":
+        inverse_rl_dqn(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "DRL":
         deep_rl()
     elif Mode == "QRL":

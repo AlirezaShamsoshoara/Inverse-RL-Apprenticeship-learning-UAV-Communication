@@ -1,6 +1,6 @@
 """
 #################################
-# Inverse Reinforcement Learning
+# Inverse Reinforcement Learning using Stochastic Gradient Descent
 #################################
 """
 
@@ -77,7 +77,7 @@ action_array = np.array(action_list, dtype=np.int8)
 # Function definition
 
 
-def inverse_rl(uav, ues_objects, ax_objects, cell_objects):
+def inverse_rl_sgd(uav, ues_objects, ax_objects, cell_objects):
     model_type = None
     weight_list = []
     solution_list = []
