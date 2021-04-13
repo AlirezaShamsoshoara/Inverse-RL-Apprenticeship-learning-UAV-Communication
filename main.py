@@ -25,7 +25,7 @@ from deeprl import deep_rl
 from location import plotues
 from utils import create_ues
 from utils import create_cells
-from inverserl import inverse_rl
+from inverserlSGD import inverse_rl
 from expert import expert_policy
 from location import plothexagon
 from config import Config_General
@@ -55,23 +55,20 @@ def main():
 
 
 if __name__ == "__main__":
+    uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
     if Mode == "Expert":
-        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
         expert_policy(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "IRL_SGD" or Mode == "IRL_DQN":
-        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
         inverse_rl(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "DRL":
         deep_rl()
     elif Mode == "QRL":
         qrl()
     elif Mode == "BC":
-        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
         behavioral_cloning(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "Shortest":
-        short_path()
+        short_path(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "Random":
-        uav_main, ues_objects_main, ax_ues_main, cells_objects_main = main()
         random_action(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "ResultsIRL":
         pass
