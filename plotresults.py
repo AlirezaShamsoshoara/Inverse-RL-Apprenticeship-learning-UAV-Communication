@@ -23,7 +23,7 @@ ResultPathFIG = Config_Path.get('ResultPathFIG')
 # Function definition
 
 
-def plot_reward_irl(trajectories, learner_index):
+def plot_reward_irl_sgd(trajectories, learner_index):
     # Trajectories:
     #           *: All Trajectories
     #                   1) Current Feature State
@@ -67,3 +67,7 @@ def plot_reward_irl(trajectories, learner_index):
         fig_reward.savefig(file_fig_pdf, bbox_inches='tight')
     if Config_Flags.get("SAVE_PLOT_FIG"):
         pickle.dump(fig_reward, open(file_fig_obj, 'wb'))
+
+
+def plot_reward_irl_dqn(trajectories, learner_index):
+    pass

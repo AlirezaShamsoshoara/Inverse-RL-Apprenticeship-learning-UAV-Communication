@@ -24,25 +24,19 @@ from config import Config_Flags
 from location import reset_axes
 from location import update_axes
 from config import Config_General
-from tensorflow.keras import Input
 from config import Config_requirement
-from sklearn.pipeline import Pipeline
-from plotresults import plot_reward_irl
 from config import movement_actions_list
 from utils import action_to_multi_actions
+from plotresults import plot_reward_irl_sgd
 from sklearn.linear_model import SGDRegressor
-from tensorflow.keras.models import Sequential
 from sklearn.preprocessing import StandardScaler
-from tensorflow.keras.optimizers import Adam, RMSprop
-from tensorflow.keras.layers import Dense, Activation, Dropout
+
 
 #########################################################
 # General Parameters
 NUM_PLAY = Config_IRL.get('NUM_PLAY')
 LOAD_IRL = Config_Flags.get('LOAD_IRL')
-BATCH_SIZE = Config_IRL.get('BATCH_SIZE')
 NUM_EPOCHS = Config_IRL.get('NUM_EPOCHS')
-INIT_LR = Config_IRL.get('LEARNING_RATE')
 ExpertPath = Config_Path.get('ExpertPath')
 WeightPath = Config_Path.get('WeightPath')
 num_cells = Config_General.get('NUM_CELLS')
@@ -367,7 +361,7 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
 
     # I have to plot the reward behavior in one simulation to see how they have improvement and convergence.
     if Config_Flags.get("PLOT_RESULTS"):
-        plot_reward_irl(trajectories, learner_index)
+        plot_reward_irl_sgd(trajectories, learner_index)
 
     # I have to save the trajectories' information on numpy files (Drive) for later evaluation
     if Config_Flags.get("SAVE_IRL_DATA"):
@@ -381,39 +375,6 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
         pickle.dump(sgd_models, open(file_sgd_models_save, 'wb'))
 
     return sgd_models
-
-
-def learner_dqn(model, weights):
-    episode = 0
-    replay = []
-
-    while episode < NUM_EPOCHS:
-
-        if episode >= num_required_replays:
-            # do training the model
-            pass
-        episode += 1
-
-    return model
-
-
-"""
-def build_neural_network():
-    input_dim = num_states
-    model = Sequential()
-    model.add(Input(shape=(input_dim, )))
-    # First Layer
-    model.add(Dense(units=100, activation='relu', kernel_initializer='lecun_uniform'))
-
-    # Second Layer
-    model.add(Dense(units=100, activation='relu', kernel_initializer='lecun_uniform'))
-
-    # Output Layer
-    model.add(Dense(units=len(action_list), activation='linear', kernel_initializer='lecun_uniform'))
-    opt = Adam(lr=INIT_LR, decay=INIT_LR / NUM_EPOCHS)
-    model.compile(optimizer=opt, loss='mse', metrics=["accuracy"])
-    return model
-"""
 
 
 def get_features_draft(cell, cell_objects, uav, ues_objects):
@@ -736,7 +697,7 @@ def learner_lfa_ql_unlimited_dist(weights, uav, ues_objects, ax_objects, cell_ob
                   round((timer_end - timer_start)/3600, 2), " hour")
 
     if Config_Flags.get("PLOT_RESULTS"):
-        plot_reward_irl(trajectories, learner_index)
+        plot_reward_irl_sgd(trajectories, learner_index)
 
     if Config_Flags.get("SAVE_IRL_DATA"):
         trajectories.append(sgd_models)

@@ -11,14 +11,15 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'BC'
+Mode = 'IRL_DQN'
 # Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL",
 # "ResultsQRL", "ResultsBC", "ResultShortest", "ResultsRand"}
 
 Config_Flags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
                 'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
-                'SAVE_PLOT_PDF': False, 'SAVE_PLOT_FIG': False, 'PRINT_INFO': True, 'LOAD_IRL': False,
-                'SAVE_DATA_BC_EXPERT': True, 'SAVE_MODEL_BC': True}
+                'SAVE_PLOT_PDF': False, 'SAVE_PLOT_FIG': False, 'PRINT_INFO': False, 'LOAD_IRL': False,
+                'SAVE_DATA_BC_EXPERT': True, 'SAVE_MODEL_BC': True, 'SAVE_IRL_DATA_DQN': False,
+                'SAVE_MODEL_IRL_DQN': False}
 
 # Possible number of UEs Cluster: 75
 # Possible number of Cells: 25
@@ -43,8 +44,10 @@ Config_Power = {'UE_Tr_power': 2.0, 'UAV_Tr_power': [50.0, 60.0, 80.0, 100.0, 15
 
 Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 10002, 'NUM_PLAY': 1, 'NUM_TRAJECTORIES_EXPERT': 1,
               'TRAJECTORY_LENGTH': Config_requirement.get('dist_limit'), 'GAMMA_FEATURES': 0.999,
-              'EPSILON_OPTIMIZATION': 0.01, 'LEARNING_RATE': 1e-3, 'BATCH_SIZE': 100, 'EPSILON_GREEDY': 0.1,
+              'EPSILON_OPTIMIZATION': 0.01, 'EPSILON_GREEDY': 0.1,
               'GAMMA_DISCOUNT': 0.9}
+
+Config_IRL_DQN = {'NUM_EPOCHS': 10000, 'BUFFER_LENGTH': 10000, 'BATCH_SIZE': 32, 'LEARNING_RATE': 1e-3}
 
 Config_BehavioralCloning = {'NUM_TRAJECTORIES_EXPERT': 10000}
 
@@ -56,12 +59,16 @@ pathDist = 'ConfigData/Cells_%d_Size_%d_UEs_%d' % (Config_General.get('NUM_CELLS
 
 ExpertPath = "Data/ExpertDemo/"
 WeightPath = "Data/Weights/"
+WeightPath_DQN = "Data/Weights_DQN/"
 InverseRLPath = "Data/InverseRL/"
+InverseRLPathDQN = "Data/InverseRL/DQNData/"
 ResultPathPDF = "Results/PDF/"
 ResultPathFIG = "Results/FIG/"
 SGDModelPath = "Data/InverseRL/SGDModel/"
+DQNModelPath = "Data/InverseRL/DQNModel/"
 ExpertPath_BC = "Data/BehavioralCloning/"
 BCModelPath = "Data/BehavioralCloning/Model/"
 Config_Path = {'PathDist': pathDist, 'ExpertPath': ExpertPath, 'WeightPath': WeightPath, 'InverseRLPath': InverseRLPath,
                'ResultPathPDF': ResultPathPDF, 'ResultPathFIG': ResultPathFIG, 'SGDModelPath': SGDModelPath,
-               'ExpertPath_BC': ExpertPath_BC, 'BCModelPath': BCModelPath}
+               'ExpertPath_BC': ExpertPath_BC, 'BCModelPath': BCModelPath, 'WeightPath_DQN': WeightPath_DQN,
+               'DQNModelPath': DQNModelPath, 'InverseRLPath_DQN': InverseRLPathDQN}
