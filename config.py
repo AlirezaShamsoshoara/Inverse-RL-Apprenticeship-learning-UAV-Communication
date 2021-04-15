@@ -16,10 +16,10 @@ Mode = 'IRL_DQN'
 # "ResultsQRL", "ResultsBC", "ResultShortest", "ResultsRand"}
 
 Config_Flags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
-                'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
-                'SAVE_PLOT_PDF': False, 'SAVE_PLOT_FIG': False, 'PRINT_INFO': False, 'LOAD_IRL': False,
+                'SAVE_EXPERT_DATA': True, 'SAVE_IRL_WEIGHT': True, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
+                'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': False, 'LOAD_IRL': False,
                 'SAVE_DATA_BC_EXPERT': True, 'SAVE_MODEL_BC': True, 'SAVE_IRL_DATA_DQN': False,
-                'SAVE_MODEL_IRL_DQN': False}
+                'SAVE_MODEL_IRL_DQN': True}
 
 # Possible number of UEs Cluster: 75
 # Possible number of Cells: 25
@@ -47,7 +47,7 @@ Config_IRL = {'NUM_FEATURES': 5, 'NUM_EPOCHS': 10002, 'NUM_PLAY': 1, 'NUM_TRAJEC
               'EPSILON_OPTIMIZATION': 0.01, 'EPSILON_GREEDY': 0.1,
               'GAMMA_DISCOUNT': 0.9}
 
-Config_IRL_DQN = {'NUM_EPOCHS': 10000, 'BUFFER_LENGTH': 10000, 'BATCH_SIZE': 32, 'LEARNING_RATE': 1e-3}
+Config_IRL_DQN = {'NUM_EPOCHS': 10000, 'BUFFER_LENGTH': 10000, 'BATCH_SIZE': 24, 'LEARNING_RATE': 1e-3}
 
 Config_BehavioralCloning = {'NUM_TRAJECTORIES_EXPERT': 10000}
 

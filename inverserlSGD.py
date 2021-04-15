@@ -495,8 +495,10 @@ def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weight
                 action = get_greedy_action(models, features_current_state, None)
             else:
                 # Model Type is DQN
+                # action = get_greedy_action_dqn(models, features_current_state)
                 action = None
                 pass
+
             action_movement_index, action_tx_index = action_to_multi_actions(action)
             action_movement = action_movement_index + 1
             action_power = tx_powers[action_tx_index]

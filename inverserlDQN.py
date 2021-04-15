@@ -6,6 +6,7 @@
 
 #########################################################
 # import libraries
+import os
 import time
 import pickle
 import random
@@ -24,21 +25,21 @@ from location import update_axes
 from config import Config_General
 from config import Config_IRL_DQN
 from tensorflow.keras import Input
-from inverserlSGD import get_features
 from inverserlSGD import optimization
+from inverserlSGD import get_features
 from config import Config_requirement
 from config import movement_actions_list
 from utils import action_to_multi_actions
-from tensorflow.keras.layers import Dense
-from inverserlSGD import run_trained_model
 from plotresults import plot_reward_irl_dqn
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Sequential
 from inverserlSGD import get_feature_expectation
+from tensorflow.keras.layers import Dense, Dropout
 from inverserlSGD import load_expert_feature_expectation
 
 #########################################################
 # General Parameters
+NUM_PLAY = Config_IRL.get('NUM_PLAY')
 LOAD_IRL = Config_Flags.get('LOAD_IRL')
 ExpertPath = Config_Path.get('ExpertPath')
 num_cells = Config_General.get('NUM_CELLS')
@@ -60,6 +61,7 @@ seed(1369)
 cell_source = 0
 action_list = []
 cell_destination = num_cells - 1
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 num_required_replays = int(NUM_EPOCHS / 10)
 # num_required_replays = 1500
 for i in range(len(tx_powers) * len(movement_actions_list)):
@@ -70,7 +72,6 @@ action_array = np.array(action_list, dtype=np.int8)
 
 
 def inverse_rl_dqn(uav, ues_objects, ax_objects, cell_objects):
-    model_type = None
     weight_list = []
     solution_list = []
     trained_models = None
@@ -94,20 +95,20 @@ def inverse_rl_dqn(uav, ues_objects, ax_objects, cell_objects):
                                                            learner_policy_feature_expectation)
             print("Optimization status is: ", solution.get('status'))
             if Config_Flags.get('SAVE_IRL_WEIGHT'):
+                weight_list.append((weights, weights_norm))
+                solution_list.append(solution)
                 weight_file.write(str(weight_list[-1]))
                 weight_file_name_np = 'weights_dqn_iter_%d_features_%d_epochs_%d' % (iter_optimization, num_features,
                                                                                      NUM_EPOCHS)
                 np.savez(WeightPath_DQN + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
 
         print("\nweights: ", weights, '\n', "weights_norm: ", weights_norm, '\n')
+        model_type = "DQN"
         if not LOAD_IRL:
-            model = build_neural_network()
-            model_type = "DQN"
-            trained_models = learner_dqn(model, weights_norm, uav, ues_objects, ax_objects, cell_objects,
+            trained_models = learner_dqn(weights_norm, uav, ues_objects, ax_objects, cell_objects,
                                                                iter_optimization)
 
         if LOAD_IRL:
-            model_type = "DQN"
             trained_models = load_trained_model_dqn(learner_index=iter_optimization)
 
         _, tested_policy_feature_expectation = run_trained_model(trained_models, uav, ues_objects, ax_objects,
@@ -145,10 +146,12 @@ def build_neural_network():
     model = Sequential()
     model.add(Input(shape=(input_dim, )))
     # First Layer
-    model.add(Dense(units=100, activation='relu', kernel_initializer='lecun_uniform'))
+    model.add(Dense(units=30, activation='relu', kernel_initializer='lecun_uniform'))
+    # model.add(Dropout(0.2))
 
     # Second Layer
-    model.add(Dense(units=100, activation='relu', kernel_initializer='lecun_uniform'))
+    model.add(Dense(units=30, activation='relu', kernel_initializer='lecun_uniform'))
+    # model.add(Dropout(0.2))
 
     # Output Layer
     model.add(Dense(units=len(action_list), activation='linear', kernel_initializer='lecun_uniform'))
@@ -157,12 +160,13 @@ def build_neural_network():
     return model
 
 
-def learner_dqn(model, weights, uav, ues_objects, ax_objects, cell_objects, learner_index):
+def learner_dqn(weights, uav, ues_objects, ax_objects, cell_objects, learner_index):
     episode = 0
     trajectories = []
     arrow_patch_list = []
     epsilon_decay = 1
     prev_cell = 1
+    model = build_neural_network()
     timer_start = time.perf_counter()
     print("......... TOTAL EPOCHS = ", NUM_EPOCHS)
     replay = []  # tuples of (S, A, R, S').
@@ -247,31 +251,42 @@ def learner_dqn(model, weights, uav, ues_objects, ax_objects, cell_objects, lear
                                                      interference_ues_next),
                                immediate_reward, deepcopy(learner_feature_expectation)))
 
-            # *****************************************************************************************
-            # Train the Deep Q Network: Deep Reinforcement Learning
             if new_cell == cell_destination:  # This is the termination point
                 done = True
 
-            if episode > num_required_replays:
-                if len(replay) > BUFFER_LENGTH:
-                    replay.pop(0)
-
-                batch = random.sample(replay, BATCH_SIZE)
-                x_train, y_train = get_batch_ready(batch, model)
-                model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=1, verbose=1)
+            # *****************************************************************************************
+            # Train the Deep Q Network: Deep Reinforcement Learning
+            # if episode > num_required_replays:
+            #     if len(replay) > BUFFER_LENGTH:
+            #         replay.pop(0)
+            #
+            #     batch = random.sample(replay, BATCH_SIZE)
+            #     x_train, y_train = get_batch_ready(batch, model)
+            #     model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=1, verbose=2)
             # *****************************************************************************************
 
             prev_cell = new_cell
             distance += 1
 
-        if epsilon_decay > 0.01 and episode > num_required_replays:
+        # *****************************************************************************************
+        # Train the Deep Q Network: Deep Reinforcement Learning
+        if episode > num_required_replays:
+            if len(replay) > BUFFER_LENGTH:
+                replay.pop(0)
+
+            batch = random.sample(replay, BATCH_SIZE)
+            x_train, y_train = get_batch_ready(batch, model)
+            model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=1, verbose=0)
+        # *****************************************************************************************
+
+        if epsilon_decay > 0.005 and episode > num_required_replays:
             epsilon_decay -= (2 / NUM_EPOCHS)
 
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
 
         episode += 1
-        if episode % 200 == 0:
+        if episode % 100 == 0:
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
             timer_end = time.perf_counter()
@@ -295,7 +310,7 @@ def learner_dqn(model, weights, uav, ues_objects, ax_objects, cell_objects, lear
     if Config_Flags.get('SAVE_MODEL_IRL_DQN'):
         file_dqn_models_save = DQNModelPath + 'DQN_Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features,
                                                                                              learner_index, NUM_EPOCHS)
-        pickle.dump(model, open(file_dqn_models_save, 'wb'))
+        # pickle.dump(model, open(file_dqn_models_save, 'wb'))
         model.save_weights(file_dqn_models_save + ".h5", overwrite=True)
         print("Saving model %s - %d" % (file_dqn_models_save, learner_index))
 
@@ -303,16 +318,17 @@ def learner_dqn(model, weights, uav, ues_objects, ax_objects, cell_objects, lear
 
 
 def load_trained_model_dqn(learner_index):
-    file_sgd_models_save = DQNModelPath + 'DQN_Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features,
-                                                                                         learner_index, NUM_EPOCHS)
-    with open(file_sgd_models_save, "rb") as file_obj:
-        models = pickle.load(file_obj)
-    return models
+    model = build_neural_network()
+    file_dqn_models_save = DQNModelPath + 'DQN_Feature_%d_learner_%d_index_EPOCHS_%d.h5' % (num_features,
+                                                                                            learner_index, NUM_EPOCHS)
+    model.load_weights(file_dqn_models_save)
+    return model
 
 
-def learner_dqn_unlimited_distance(model, weights, uav, ues_objects, ax_objects, cell_objects,
+def learner_dqn_unlimited_distance(weights, uav, ues_objects, ax_objects, cell_objects,
                                                                iter_optimization):
     dist_infinite = 10000
+    model = build_neural_network()
 
     return model
 
@@ -335,7 +351,6 @@ def get_batch_ready(batch, model):
         y[:] = q_value_current[:]
 
         if next_cell == cell_destination:  # This is the termination point
-            done = True
             q_dqn_target = reward
         else:
             q_dqn_target = reward + (gamma_discount * np.max(q_value_next))
@@ -347,3 +362,98 @@ def get_batch_ready(batch, model):
     y_train_np = np.array(y_train)
 
     return x_train_np, y_train_np
+
+
+def run_trained_model(models, uav, ues_objects, ax_objects, cell_objects, weights, model_type="DQN"):
+    episode = 0
+    trajectories = []
+    arrow_patch_list = []
+    prev_cell = 1
+    print("......... TOTAL RUNs = ", NUM_PLAY)
+    learner_feature_expectation = np.zeros((NUM_PLAY, num_features), dtype=float)
+    while episode < NUM_PLAY:
+        trajectory = []
+        distance = 0
+        done = False
+        uav.uav_reset(cell_objects)
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+        while distance < dist_limit and not done:
+            current_cell = uav.get_cell_id()
+            interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
+                                                                                                    ues_objects)
+            # if Config_Flags.get('PRINT_INFO'):
+            print("\n********** INFO:\n",
+                  "Episode: ", episode + 1, '\n',
+                  "Distance: ", distance, '\n',
+                  "Current Cell:", current_cell, '\n',
+                  "Current State \n",
+                  "Interference on UAV: ", interference, '\n',
+                  "SINR: ", sinr, '\n',
+                  "Throughput: ", throughput, '\n',
+                  "Interference on Neighbor UEs: ", interference_ues)
+            features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
+                                                  ues_objects=ues_objects)
+
+            if model_type == "DQN":
+                action = get_greedy_action_dqn(models, features_current_state)
+            else:
+                # Model Type is SGD
+                # action = get_greedy_action_dqn(models, features_current_state)
+                action = None
+                pass
+
+            action_movement_index, action_tx_index = action_to_multi_actions(action)
+            action_movement = action_movement_index + 1
+            action_power = tx_powers[action_tx_index]
+
+            # Calculate the next_state
+            avail_actions_mov = cell_objects[current_cell].get_actions()
+            avail_neighbors = cell_objects[current_cell].get_neighbor()
+            if np.any(action_movement == np.array(avail_actions_mov)):
+                new_cell = avail_neighbors[np.where(action_movement == np.array(avail_actions_mov))[0][0]]
+            else:
+                new_cell = current_cell
+
+            uav.set_cell_id(cid=new_cell)
+            uav.set_location(loc=cell_objects[new_cell].get_location())
+            uav.set_hop(hop=uav.get_hop() + 1)
+            uav.set_power(tr_power=action_power)
+
+            interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
+                uav.uav_perform_task(cell_objects, ues_objects)
+            # if Config_Flags.get('PRINT_INFO'):
+            print("\n********** INFO:\n",
+                  "Episode: ", episode + 1, '\n',
+                  "Distance: ", distance + 1, '\n',
+                  "New Cell:", new_cell, '\n',
+                  "Next State \n",
+                  "Action_power: ", action_power, '\n',
+                  "Interference on UAV: ", interference_next, '\n',
+                  "SINR: ", sinr_next, '\n',
+                  "Throughput: ", throughput_next, '\n',
+                  "Interference on Neighbor UEs: ", interference_ues_next)
+            features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
+                                               ues_objects=ues_objects)
+            learner_feature_expectation[episode, :] += get_feature_expectation(features_next_state, distance)
+            # Calculate the reward
+            immediate_reward = np.dot(weights, features_next_state)
+            arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
+                                           action_power, cell_objects[new_cell].get_location(),
+                                           action_movement, cell_objects[current_cell].get_location(), arrow_patch_list)
+
+            trajectory.append((features_current_state, (interference, sinr, throughput, interference_ues), action,
+                               features_next_state, (interference_next, sinr_next, throughput_next,
+                                                     interference_ues_next),
+                               immediate_reward, deepcopy(learner_feature_expectation)))
+            if new_cell == cell_destination:  # This is the termination point
+                done = True
+            prev_cell = new_cell
+            distance += 1
+        trajectory.append(learner_feature_expectation)
+        trajectories.append(trajectory)
+        episode += 1
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+
+    return learner_feature_expectation, np.mean(learner_feature_expectation, axis=0)
