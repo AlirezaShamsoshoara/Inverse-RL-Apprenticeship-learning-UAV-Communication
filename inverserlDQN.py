@@ -49,9 +49,9 @@ num_features = Config_IRL.get('NUM_FEATURES')
 NUM_EPOCHS = Config_IRL_DQN.get('NUM_EPOCHS')
 INIT_LR = Config_IRL_DQN.get('LEARNING_RATE')
 DQNModelPath = Config_Path.get('DQNModelPath')
-WeightPath_DQN = Config_Path.get('WeightPath')
 gamma_discount = Config_IRL.get('GAMMA_DISCOUNT')
 dist_limit = Config_requirement.get('dist_limit')
+WeightPath_DQN = Config_Path.get('WeightPath_DQN')
 BUFFER_LENGTH = Config_IRL_DQN.get('BUFFER_LENGTH')
 epsilon_opt = Config_IRL.get('EPSILON_OPTIMIZATION')
 InverseRLPathDQN = Config_Path.get('InverseRLPathDQN')
@@ -61,7 +61,10 @@ seed(1369)
 cell_source = 0
 action_list = []
 cell_destination = num_cells - 1
+#####################################
+# Disabling the GPU to test the speed
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+#########################################
 num_required_replays = int(NUM_EPOCHS / 10)
 # num_required_replays = 1500
 for i in range(len(tx_powers) * len(movement_actions_list)):
