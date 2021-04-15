@@ -78,11 +78,13 @@ def inverse_rl_sgd(uav, ues_objects, ax_objects, cell_objects):
     trained_models = None
     iter_optimization = 0
     weight_file_name_txt = 'weights_features_%d_epochs_%d.txt' % (num_features, NUM_EPOCHS)
-    weight_file = open(WeightPath + weight_file_name_txt, 'w')
+    weight_file = None
+    if Config_Flags.get('SAVE_IRL_WEIGHT'):
+        weight_file = open(WeightPath + weight_file_name_txt, 'w')
 
     expert_policy_feature_expectation = load_expert_feature_expectation()
     # expert_policy_feature_expectation = [Dist, 		  Success, 		UE, 		Throughput,  Interference]
-    # expert_policy_feature_expectation(5) = [5.00947727 4.9700749  0.29048563 4.52332752 0.31299007]
+    # expert_policy_feature_expectation(5) = [1.96955769, 4.9700749 , 0.29048563, 5.12332752, 0.31299007]
     # expert_policy_feature_expectation(4) = [4.9700749  0.29048563 5.12332752 0.31299007] # no Dist
 
     # Just some random feature expectation for the learner:
@@ -111,7 +113,7 @@ def inverse_rl_sgd(uav, ues_objects, ax_objects, cell_objects):
                     np.savez(WeightPath + weight_file_name_np, weight_list=weight_list, solution_list=solution_list)
 
         print("\nweights: ", weights, '\n', "weights_norm: ", weights_norm, '\n')
-        # TODO(1): Run another simulation based on the new weights to update the learner policy
+        #  (A): Run another simulation based on the new weights to update the learner policy
         #  (Feature expectation policy) to run another simulation we can have simple Q learning model or
         #  a deep reinforcement learning one
         if not LOAD_IRL:
@@ -124,12 +126,12 @@ def inverse_rl_sgd(uav, ues_objects, ax_objects, cell_objects):
                 model_type = "SGD"
                 # [5.00947727 4.9700749  0.29048563 5.12332752 0.31299007]
                 # weights_norm = np.asarray([6.80128574e-06,  0.86679868, -9.62677292e-01, 2.55648174e-02, -0.42602828])
-                # trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects,
-                #                                 iter_optimization)
-                trained_models = learner_lfa_ql_unlimited_dist(weights_norm, uav, ues_objects, ax_objects, cell_objects,
-                                                               iter_optimization)
+                trained_models = learner_lfa_ql(weights_norm, uav, ues_objects, ax_objects, cell_objects,
+                                                iter_optimization)
+                # trained_models = learner_lfa_ql_unlimited_dist(weights_norm, uav, ues_objects, ax_objects,
+                #                                                cell_objects,ziter_optimization)
 
-        # TODO: Update the learner policy (Feature expectation policy) and calculate the hyper distance between the
+        #  Update the learner policy (Feature expectation policy) and calculate the hyper distance between the
         #  current learner policy (Feature expectation policy) and the expert policy (Feature expectation policy).
 
         if LOAD_IRL:
@@ -145,8 +147,8 @@ def inverse_rl_sgd(uav, ues_objects, ax_objects, cell_objects):
                                        np.asarray(learner_policy_feature_expectation[-1])))
         print("...... Learner = ", iter_optimization, "  Hyper Distance = ", hyper_distance)
 
-        # TODO: If the distance is less than a threshold, then break the optimization and report the optimal weights
-        # TODO: (Contd) and the optimal policy based on the imported weights else go to TODO(1)
+        # If the distance is less than a threshold, then break the optimization and report the optimal weights
+        # and the optimal policy based on the imported weights else go to (A)
         if hyper_distance < epsilon_opt:
             # We are done with the Weight learning for the reward function and policy learning.
             # Now we have to Save the finalized weights for the reward function and also the learned policy for the
@@ -158,10 +160,8 @@ def inverse_rl_sgd(uav, ues_objects, ax_objects, cell_objects):
             pass
         iter_optimization += 1
 
-    # TODO: Run the last simulation with the optimal weights for the evaluation and result comparison with other
-    #  methods
-
-    weight_file.close()
+    if Config_Flags.get('SAVE_IRL_WEIGHT'):
+        weight_file.close()
 
 
 def load_expert_feature_expectation():
@@ -342,20 +342,23 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
             prev_cell = new_cell
             distance += 1
 
-        # if epsilon_decay > 0.001 and episode > num_required_replays:
-        #     epsilon_decay -= (2 / NUM_EPOCHS)
+        if epsilon_decay > 0.005 and episode > num_required_replays:
+            epsilon_decay -= (2 / NUM_EPOCHS)
 
-        if epsilon_decay > 0.1 and episode > num_required_replays:
-            epsilon_decay -= (1 / NUM_EPOCHS)
+        # if epsilon_decay > 0.1 and episode > num_required_replays:
+        #     epsilon_decay -= (1 / NUM_EPOCHS)
 
         trajectory.append(learner_feature_expectation)
         trajectories.append(trajectory)
         episode += 1
         if episode % 200 == 0:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
             timer_end = time.perf_counter()
-            print(" ......... EPISODE = ", episode, "......... ELAPSED TIME = ", round(timer_end - timer_start, 2),
-                  " Seconds, ", round((timer_end - timer_start)/60, 2), " mins, ",
-                  round((timer_end - timer_start)/3600, 2), " hour")
+            print(" ......... EPISODE = ", episode, "......... Current Time = ", current_time,
+                  " ..... ELAPSED TIME = ", round(timer_end - timer_start, 2), " Seconds, ",
+                  round((timer_end - timer_start) / 60, 2), " mins, ",
+                  round((timer_end - timer_start) / 3600, 2), " hour")
     trajectories.append(sgd_models)
     trajectories.append(learner_index)
 

@@ -84,6 +84,9 @@ def inverse_rl_dqn(uav, ues_objects, ax_objects, cell_objects):
     if Config_Flags.get('SAVE_IRL_WEIGHT'):
         weight_file = open(WeightPath_DQN + weight_file_name_txt, 'w')
     expert_policy_feature_expectation = load_expert_feature_expectation()
+    # expert_policy_feature_expectation = [Dist, 		  Success, 		UE, 		Throughput,  Interference]
+    # expert_policy_feature_expectation(5) = [1.96955769, 4.9700749 , 0.29048563, 5.12332752, 0.31299007]
+    # expert_policy_feature_expectation(4) = [4.9700749  0.29048563 5.12332752 0.31299007] # no Dist
 
     if num_features == 5:
         learner_policy_feature_expectation = [[1.96955769, 4.2700749, 0.49048563, 4.52332752, 0.51299007]]
