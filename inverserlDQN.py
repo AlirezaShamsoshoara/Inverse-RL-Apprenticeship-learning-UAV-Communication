@@ -63,7 +63,8 @@ action_list = []
 cell_destination = num_cells - 1
 #####################################
 # Disabling the GPU to test the speed
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+if Config_Flags.get('DISABLE_GPU'):
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 #########################################
 num_required_replays = int(NUM_EPOCHS / 10)
 # num_required_replays = 1500

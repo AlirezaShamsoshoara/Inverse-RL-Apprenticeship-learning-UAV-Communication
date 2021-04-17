@@ -34,6 +34,7 @@ from randompolicy import random_action
 from inverserlSGD import inverse_rl_sgd
 from inverserlDQN import inverse_rl_dqn
 from behavioral import behavioral_cloning
+from evaluation import inverse_rl_hyper_distance
 
 #########################################################
 # General Parameters
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     elif Mode == "Random":
         random_action(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "ResultsIRL":
+        inverse_rl_hyper_distance()
         pass
     elif Mode == "ResultsDRL":
         pass
