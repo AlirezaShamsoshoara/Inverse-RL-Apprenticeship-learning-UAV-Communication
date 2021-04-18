@@ -10,9 +10,9 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'ResultsIRL'
-# Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL", "ResultsDRL",
-# "ResultsQRL", "ResultsBC", "ResultShortest", "ResultsRand"}
+Mode = 'EvaluationTraining'
+# Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL",
+# "EvaluationTraining", "EvaluationScenario", "EvaluationError"}
 
 Config_Flags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
                 'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
