@@ -6,21 +6,56 @@
 
 #########################################################
 # import libraries
+import time
 import pickle
+import random
 import numpy as np
+from random import seed
+from random import randint
+from datetime import datetime
 from config import Config_IRL
 from config import Config_Path
+from config import Config_Power
 from config import Config_Flags
 import matplotlib.pyplot as plt
+from location import reset_axes
+from location import update_axes
+from config import Config_General
+from config import Config_Evaluation
+from inverserlSGD import get_features
+from config import Config_requirement
 from matplotlib.patches import Ellipse
+from config import movement_actions_list
+from utils import action_to_multi_actions
+from inverserlSGD import get_greedy_action
+from config import Config_BehavioralCloning
+from inverserlDQN import build_neural_network
+from inverserlDQN import get_greedy_action_dqn
+from plotresults import plot_training_trajectories
 
 #########################################################
 # General Parameters
+WeightPath = Config_Path.get('WeightPath')
+num_cells = Config_General.get('NUM_CELLS')
+BCModelPath = Config_Path.get('BCModelPath')
+tx_powers = Config_Power.get('UAV_Tr_power')
 num_features = Config_IRL.get('NUM_FEATURES')
+DQNModelPath = Config_Path.get('DQNModelPath')
+SGDModelPath = Config_Path.get('SGDModelPath')
 ResultPathPDF = Config_Path.get('ResultPathPDF')
 ResultPathFIG = Config_Path.get('ResultPathFIG')
+dist_limit = Config_requirement.get('dist_limit')
+WeightPath_DQN = Config_Path.get('WeightPath_DQN')
+NUM_TRAINING = Config_Evaluation.get('NUM_TRAINING')
+NUM_EPISODES = Config_BehavioralCloning.get('NUM_TRAJECTORIES_EXPERT')
 
-
+seed(1369)
+cell_source = 0
+action_list = []
+cell_destination = num_cells - 1
+for i in range(len(tx_powers) * len(movement_actions_list)):
+    action_list.append(i)
+action_array = np.array(action_list, dtype=np.int8)
 #########################################################
 # Function definition
 
@@ -59,16 +94,177 @@ def inverse_rl_hyper_distance():
 
 
 def evaluation_training(uav, ues_objects, ax_objects, cell_objects):
-    inverse_rl_sgd_model_file = BCModelPath + 'BC_Models_Feature_%d_EPOCHS_%d' % (num_features, NUM_EPISODES)
-    inverse_rl_dqn_model_file = ''
-    behavioral_model_file = ''
+    weights_sgd, weights_norm_sgd, solution = load_weight_irl_sgd(iter_optimization=8)
+    trained_models_sgd = load_trained_model_sgd(learner_index=8)
 
-    pass
+    weights_dqn, weights_norm_dqn, solution_dqn = load_weight_irl_dqn(iter_optimization=3)
+    trained_models_dqn = load_trained_model_dqn(learner_index=3)
+    trajectories_sgd_run = []
+    trajectories_dqn_run = []
+    num_run = 25
+    for run in range(0, num_run):
+        trajectories_sgd = run_training_sample(trained_models_sgd, uav, ues_objects, ax_objects,
+                                               cell_objects, weights_norm_sgd, model_type="SGD")
+        trajectories_sgd_run.append(trajectories_sgd)
+
+        trajectories_dqn = run_training_sample(trained_models_dqn, uav, ues_objects, ax_objects,
+                                                cell_objects, weights_norm_dqn, model_type="DQN")
+        trajectories_dqn_run.append(trajectories_dqn)
+
+    plot_training_trajectories(trajectories_sgd_run, trajectories_dqn_run, cell_objects)
 
 
 def evaluation_scenario():
-    pass
+    behavioral_model_file = BCModelPath + 'BC_Models_Feature_%d_EPOCHS_%d' % (num_features, NUM_EPISODES)
 
 
 def evaluation_error():
     pass
+
+
+def load_weight_irl_sgd(iter_optimization):
+    weight_file_name_np = 'weights_iter_%d_features_%d_epochs_%d.npz' % (iter_optimization, num_features, 10002)
+    weight, weight_norm = np.load(WeightPath + weight_file_name_np).get('weight_list')[iter_optimization][0], \
+                          np.load(WeightPath + weight_file_name_np).get('weight_list')[iter_optimization][1]
+    return weight, weight_norm, None
+
+
+def load_trained_model_sgd(learner_index):
+    file_sgd_models_save = SGDModelPath + 'SGD_Feature_%d_learner_%d_index_EPOCHS_%d' % (num_features,
+                                                                                         learner_index, 10002)
+    with open(file_sgd_models_save, "rb") as file_obj:
+        models = pickle.load(file_obj)
+    return models
+
+
+def load_weight_irl_dqn(iter_optimization):
+    weight_file_name_np = 'weights_dqn_iter_%d_features_%d_epochs_%d.npz' % (iter_optimization, num_features, 10000)
+    weight, weight_norm = np.load(WeightPath_DQN + weight_file_name_np).get('weight_list')[iter_optimization][0], \
+                          np.load(WeightPath_DQN + weight_file_name_np).get('weight_list')[iter_optimization][1]
+    return weight, weight_norm, None
+
+
+def load_trained_model_dqn(learner_index):
+    model = build_neural_network()
+    file_dqn_models_save = DQNModelPath + 'DQN_Feature_%d_learner_%d_index_EPOCHS_%d.h5' % (num_features,
+                                                                                            learner_index, 10000)
+    model.load_weights(file_dqn_models_save)
+    return model
+
+
+def run_training_sample(models, uav, ues_objects, ax_objects, cell_objects, weights, model_type="SGD"):
+    episode = 0
+    epsilon_decay = 1
+    trajectories = []
+    arrow_patch_list = []
+    prev_cell = 1
+    timer_start = time.perf_counter()
+    print("......... TOTAL RUNs = ", NUM_TRAINING)
+    while episode < NUM_TRAINING:
+        distance = 0
+        done = False
+        trajectory = []
+        uav.uav_reset(cell_objects)
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+        while distance < dist_limit and not done:
+            current_cell = uav.get_cell_id()
+            interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
+                                                                                                    ues_objects)
+            if Config_Flags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance, '\n',
+                      "Current Cell:", current_cell, '\n',
+                      "Current State \n",
+                      "Interference on UAV: ", interference, '\n',
+                      "SINR: ", sinr, '\n',
+                      "Throughput: ", throughput, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues)
+            features_current_state = get_features(cell=current_cell, cell_objects=cell_objects, uav=uav,
+                                                  ues_objects=ues_objects)
+
+            if random.random() < epsilon_decay:
+                action = randint(0, len(action_list) - 1)
+            else:
+                if model_type == "SGD":
+                    action = get_greedy_action(models, features_current_state, None)
+                elif model_type == "DQN":
+                    # Model Type is DQN
+                    action = get_greedy_action_dqn(models, features_current_state)
+                else:
+                    # Model is wrong
+                    action = None
+                    exit(' ........... Exit: wrong model type')
+
+            action_movement_index, action_tx_index = action_to_multi_actions(action)
+            action_movement = action_movement_index + 1
+            action_power = tx_powers[action_tx_index]
+
+            # Calculate the next_state
+            avail_actions_mov = cell_objects[current_cell].get_actions()
+            avail_neighbors = cell_objects[current_cell].get_neighbor()
+            if np.any(action_movement == np.array(avail_actions_mov)):
+                new_cell = avail_neighbors[np.where(action_movement == np.array(avail_actions_mov))[0][0]]
+            else:
+                new_cell = current_cell
+
+            uav.set_cell_id(cid=new_cell)
+            uav.set_location(loc=cell_objects[new_cell].get_location())
+            uav.set_hop(hop=uav.get_hop() + 1)
+            uav.set_power(tr_power=action_power)
+
+            interference_next, sinr_next, throughput_next, interference_ues_next, max_throughput_next = \
+                uav.uav_perform_task(cell_objects, ues_objects)
+            if Config_Flags.get('PRINT_INFO'):
+                print("\n********** INFO:\n",
+                      "Episode: ", episode + 1, '\n',
+                      "Distance: ", distance + 1, '\n',
+                      "New Cell:", new_cell, '\n',
+                      "Next State \n",
+                      "Action_power: ", action_power, '\n',
+                      "Interference on UAV: ", interference_next, '\n',
+                      "SINR: ", sinr_next, '\n',
+                      "Throughput: ", throughput_next, '\n',
+                      "Interference on Neighbor UEs: ", interference_ues_next)
+            features_next_state = get_features(cell=new_cell, cell_objects=cell_objects, uav=uav,
+                                               ues_objects=ues_objects)
+            # learner_feature_expectation[episode, :] += get_feature_expectation(features_next_state, distance)
+            # Calculate the reward
+            immediate_reward = np.dot(weights, features_next_state)
+            arrow_patch_list = update_axes(ax_objects, prev_cell, cell_source, cell_destination, new_cell,
+                                           action_power, cell_objects[new_cell].get_location(),
+                                           action_movement, cell_objects[current_cell].get_location(), arrow_patch_list)
+            if Config_Flags.get('Display_map'):
+                plt.pause(0.001)
+
+            trajectory.append((features_current_state, (interference, sinr, throughput, interference_ues), action,
+                               features_next_state, (interference_next, sinr_next, throughput_next,
+                                                     interference_ues_next),
+                               immediate_reward, new_cell))
+            if new_cell == cell_destination:  # This is the termination point
+                done = True
+            prev_cell = new_cell
+            distance += 1
+
+        trajectories.append(trajectory)
+        episode += 1
+        arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
+                                      arrow_patch_list=arrow_patch_list)
+
+        if epsilon_decay > 0 and episode:
+            epsilon_decay -= (2 / NUM_TRAINING)
+            if epsilon_decay < 0:
+                epsilon_decay = 0
+
+        if episode % int(NUM_TRAINING/50) == 0:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            timer_end = time.perf_counter()
+            print(" ......... EPISODE = ", episode, "......... Current Time = ", current_time,
+                  " ..... ELAPSED TIME = ", round(timer_end - timer_start, 2), " Seconds, ",
+                  round((timer_end - timer_start) / 60, 2), " mins, ",
+                  round((timer_end - timer_start) / 3600, 2), " hour")
+            print("epsilon_decay: ", epsilon_decay)
+
+    return trajectories

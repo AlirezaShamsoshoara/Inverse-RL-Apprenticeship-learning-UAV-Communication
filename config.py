@@ -50,6 +50,8 @@ Config_IRL_DQN = {'NUM_EPOCHS': 10000, 'BUFFER_LENGTH': 10000, 'BATCH_SIZE': 24,
 
 Config_BehavioralCloning = {'NUM_TRAJECTORIES_EXPERT': 10000}
 
+Config_Evaluation = {'NUM_TRAINING': 101}
+
 Config_QRL = {}
 Config_DRL = {}
 
