@@ -84,9 +84,9 @@ if __name__ == "__main__":
     elif Mode == "EvaluationTraining":
         evaluation_training(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "EvaluationScenario":
-        evaluation_scenario()
+        evaluation_scenario(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     elif Mode == "EvaluationError":
-        evaluation_error()
+        evaluation_error(uav_main, ues_objects_main, ax_ues_main, cells_objects_main)
     else:
         print("Mode is not correct")
         exit(' ........... Exit: wrong chosen mode')

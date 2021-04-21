@@ -10,11 +10,11 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'EvaluationTraining'
+Mode = 'EvaluationError'
 # Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL",
 # "EvaluationTraining", "EvaluationScenario", "EvaluationError"}
 
-Config_Flags = {'SAVE_path': True, 'Display_map': False, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
+Config_Flags = {'SAVE_path': True, 'Display_map': True, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
                 'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
                 'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': False, 'LOAD_IRL': False,
                 'SAVE_DATA_BC_EXPERT': True, 'SAVE_MODEL_BC': True, 'SAVE_IRL_DATA_DQN': False,

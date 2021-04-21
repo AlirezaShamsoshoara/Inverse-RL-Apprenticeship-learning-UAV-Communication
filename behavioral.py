@@ -24,7 +24,6 @@ from location import update_axes
 from config import Config_General
 from xgboost import XGBClassifier
 from config import Config_requirement
-from config import movement_actions_list
 from config import Number_of_neighbor_UEs
 from utils import multi_actions_to_action
 from utils import action_to_multi_actions
@@ -59,7 +58,7 @@ cell_destination = num_cells - 1
 def behavioral_cloning(uav, ues_objects, ax_objects, cell_objects):
     print(" ****** Mode: Behavioral cloning for the drone ")
     trajectories = load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_data=True)
-    models = train_model(trajectories, load_model=True)
+    models = train_model_behavioral(trajectories, load_model=True)
     imitation_behavioral_cloning(uav, ues_objects, ax_objects, cell_objects, models)
 
 
@@ -109,7 +108,8 @@ def load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_da
                                   (Number_of_neighbor_UEs.get('Max') - Number_of_neighbor_UEs.get('Min')) * \
                                   (max(tx_powers) - min(tx_powers))
                 if Config_Flags.get('PRINT_INFO'):
-                    print("\n********** INFO:\n Number of Neighbor UEs: ", cell_objects[new_state].get_num_neighbor_ues(),
+                    print("\n********** INFO:\n Number of Neighbor UEs: ",
+                          cell_objects[new_state].get_num_neighbor_ues(),
                           '\n', "Suggested Power: ", suggested_power)
                 # expert_action_power = float(input("Please select the TX Power" + str(tx_powers) + ":"))
                 expert_action = multi_actions_to_action(expert_action_mov, expert_action_power)
@@ -164,7 +164,7 @@ def load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_da
 
 def get_features(state, cell_objects, uav, ues_objects):
     phi_distance = np.power((cell_objects[state].get_distance()) / MAX_DISTANCE, 2.)
-    phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
+    # phi_hop = 1 - np.power((uav.get_hop()) / dist_limit, 2.)
     num_neighbors_ues = cell_objects[state].get_num_neighbor_ues()
     phi_ues = np.power((num_neighbors_ues - MIN_UE_NEIGHBORS)/(MAX_UE_NEIGHBORS - MIN_UE_NEIGHBORS), 2)
     phi_throughput = np.power((uav.calc_throughput()) / uav.calc_max_throughput(cell_objects=cell_objects), 2)
@@ -207,7 +207,7 @@ def choose_action_expert(cell):
     return action
 
 
-def train_model(trajectories, load_model=False):
+def train_model_behavioral(trajectories, load_model=False):
     # Useful links and helps:
     num_trajectories = len(trajectories)
     x_input = np.zeros((num_trajectories, num_features), dtype=float)
@@ -241,7 +241,7 @@ def train_model(trajectories, load_model=False):
 
         clf_xgb = XGBClassifier().fit(train_x, train_y)
         y_pred_xgb = clf_xgb.predict(test_x)
-        predictions = [round(value) for value in y_pred_xgb]
+        # predictions = [round(value) for value in y_pred_xgb]
         accuracy_xgb = accuracy_score(test_y, y_pred_xgb)
         print("Accuracy: %.2f%%" % (accuracy_xgb * 100.0))
 
