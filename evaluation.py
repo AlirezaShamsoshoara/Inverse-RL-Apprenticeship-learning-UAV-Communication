@@ -35,6 +35,7 @@ from inverserlDQN import build_neural_network
 from behavioral import train_model_behavioral
 from inverserlDQN import get_greedy_action_dqn
 from behavioral import load_expert_trajectories
+from plotresults import plot_error_trajectories
 from plotresults import plot_sample_trajectories
 from plotresults import plot_training_trajectories
 
@@ -157,20 +158,20 @@ def evaluation_error(uav, ues_objects, ax_objects, cell_objects):
     weights_sgd, weights_norm_sgd, solution = load_weight_irl_sgd(iter_optimization=8)
     trained_models_sgd = load_trained_model_sgd(learner_index=8)
     trajectories_sgd = run_episode_sample(trained_models_sgd, uav, ues_objects, ax_objects,
-                                          cell_objects, weights_norm_sgd, model_type="SGD")
+                                          cell_objects, weights_norm_sgd, model_type="SGD", error=True)
     print(" ................... 1 Episode for Q-Learning using Linear Function Approximation ...................")
 
     weights_dqn, weights_norm_dqn, solution_dqn = load_weight_irl_dqn(iter_optimization=3)
     trained_models_dqn = load_trained_model_dqn(learner_index=3)
     trajectories_dqn = run_episode_sample(trained_models_dqn, uav, ues_objects, ax_objects,
-                                          cell_objects, weights_norm_dqn, model_type="DQN")
+                                          cell_objects, weights_norm_dqn, model_type="DQN", error=True)
     print(" ................... 1 Episode for Deep Q-Network ...................")
 
     trajectories = load_expert_trajectories(uav, ues_objects, ax_objects, cell_objects, load_data=True)
     models_behavioral = train_model_behavioral(trajectories, load_model=True)
     weights_norm_bc = np.array([0, 0, 0, 0, 0])
     trajectories_bc = run_episode_sample(models_behavioral, uav, ues_objects, ax_objects,
-                                         cell_objects, weights_norm_bc, model_type="BC")
+                                         cell_objects, weights_norm_bc, model_type="BC", error=True)
     print(" ................... 1 Episode for Behavioral Cloning ...................")
 
     plot_error_trajectories(trajectories_sgd, trajectories_dqn, trajectories_bc, cell_objects)
@@ -324,7 +325,7 @@ def run_training_sample(models, uav, ues_objects, ax_objects, cell_objects, weig
     return trajectories
 
 
-def run_episode_sample(models, uav, ues_objects, ax_objects, cell_objects, weights, model_type="SGD"):
+def run_episode_sample(models, uav, ues_objects, ax_objects, cell_objects, weights, model_type="SGD", error=False):
     episode = 0
     trajectories = []
     arrow_patch_list = []
@@ -342,6 +343,9 @@ def run_episode_sample(models, uav, ues_objects, ax_objects, cell_objects, weigh
         uav.uav_reset(cell_objects)
         arrow_patch_list = reset_axes(ax_objects=ax_objects, cell_source=cell_source, cell_destination=cell_destination,
                                       arrow_patch_list=arrow_patch_list)
+        if error:
+            uav.set_location(loc=cell_objects[5].get_location())
+            uav.set_cell_id(cid=5)
         while distance < dist_limit and not done:
             current_cell = uav.get_cell_id()
             interference, sinr, throughput, interference_ues, max_throughput = uav.uav_perform_task(cell_objects,
