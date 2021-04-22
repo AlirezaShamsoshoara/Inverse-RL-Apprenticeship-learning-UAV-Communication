@@ -80,7 +80,7 @@ def random_action(uav, ues_objects, ax_objects, cell_objects):
             # Should remove these above lines
             uav.uav_perform_task(cell_objects, ues_objects)
             if Config_Flags.get('Display_map'):
-                plt.pause(0.001)
+                plt.pause(0.1)
             prev_cell = neighbor_rand
             if neighbor_rand == cell_destination:
                 done = True

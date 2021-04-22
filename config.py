@@ -10,7 +10,7 @@ import numpy as np
 
 #########################################################
 # Configuration
-Mode = 'EvaluationError'
+Mode = 'Random'
 # Different Modes {"Expert", "IRL_SGD", "IRL_DQN", "DRL", "QRL", "BC", "Shortest", "Random", "ResultsIRL",
 # "EvaluationTraining", "EvaluationScenario", "EvaluationError"}
 
