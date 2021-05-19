@@ -15,10 +15,10 @@ Mode = 'Random'
 # "EvaluationTraining", "EvaluationScenario", "EvaluationError"}
 
 Config_Flags = {'SAVE_path': True, 'Display_map': True, 'SingleArrow': False, 'SAVE_IRL_DATA': False,
-                'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': True,
-                'SAVE_PLOT_PDF': True, 'SAVE_PLOT_FIG': True, 'PRINT_INFO': False, 'LOAD_IRL': False,
-                'SAVE_DATA_BC_EXPERT': True, 'SAVE_MODEL_BC': True, 'SAVE_IRL_DATA_DQN': False,
-                'SAVE_MODEL_IRL_DQN': True, 'DISABLE_GPU': True}
+                'SAVE_EXPERT_DATA': False, 'SAVE_IRL_WEIGHT': False, 'SAVE_MODEL_IRL_SGD': False, 'PLOT_RESULTS': False,
+                'SAVE_PLOT_PDF': False, 'SAVE_PLOT_FIG': False, 'PRINT_INFO': False, 'LOAD_IRL': False,
+                'SAVE_DATA_BC_EXPERT': False, 'SAVE_MODEL_BC': False, 'SAVE_IRL_DATA_DQN': False,
+                'SAVE_MODEL_IRL_DQN': False, 'DISABLE_GPU': True}
 
 # Possible number of UEs Cluster: 75
 # Possible number of Cells: 25

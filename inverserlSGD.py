@@ -22,6 +22,7 @@ from config import Config_Path
 from config import Config_Power
 from config import Config_Flags
 from location import reset_axes
+import matplotlib.pyplot as plt
 from location import update_axes
 from config import Config_General
 from config import Config_requirement
@@ -339,6 +340,8 @@ def learner_lfa_ql(weights, uav, ues_objects, ax_objects, cell_objects, learner_
                                features_next_state, (interference_next, sinr_next, throughput_next,
                                                      interference_ues_next),
                                immediate_reward, deepcopy(learner_feature_expectation)))
+            if Config_Flags.get('Display_map'):
+                plt.pause(0.01)
             prev_cell = new_cell
             distance += 1
 

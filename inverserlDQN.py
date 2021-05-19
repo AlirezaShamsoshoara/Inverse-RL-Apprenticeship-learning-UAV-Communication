@@ -21,6 +21,7 @@ from config import Config_Path
 from config import Config_Flags
 from config import Config_Power
 from location import reset_axes
+import matplotlib.pyplot as plt
 from location import update_axes
 from config import Config_General
 from config import Config_IRL_DQN
@@ -271,7 +272,8 @@ def learner_dqn(weights, uav, ues_objects, ax_objects, cell_objects, learner_ind
             #     x_train, y_train = get_batch_ready(batch, model)
             #     model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=1, verbose=2)
             # *****************************************************************************************
-
+            if Config_Flags.get('Display_map'):
+                plt.pause(0.01)
             prev_cell = new_cell
             distance += 1
 
