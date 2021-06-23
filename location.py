@@ -59,6 +59,8 @@ def plothexagon():
     ax_cells.add_artist(circle)
     ax_cells.set_xlim([min(hcoord) - 2 * radius, max(hcoord) + 2 * radius])
     ax_cells.set_ylim([min(vcoord) - 2 * radius, max(vcoord) + 2 * radius])
+    ax_cells.set_xlabel("X - Location", size=14, fontweight='bold')
+    ax_cells.set_ylabel("Y - Location", size=14, fontweight='bold')
     ax_cells.grid(True)
     # plt.show(block=False)
     return np.array(vcoord), np.array(hcoord), cell_ids, fig_cells, ax_cells, coordinates
@@ -185,10 +187,15 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
     ax_objects.patches[cell_destination].set_color('r')
     ax_objects.patches[neighbor_rand].set_color('b')
     tx_radius = power_to_radius(tx_power)
-    ax_objects.artists[0].set_center(center[0:2])
-    ax_objects.artists[0].set_radius(tx_radius)
-    # circle = plt.Circle(center[0:2], radius=tx_radius, color='b', alpha=0.3)
-    # ax_objects.add_artist(circle)
+    # ***************************************
+    # Keep single circle for demonstration
+    # ax_objects.artists[0].set_center(center[0:2])
+    # ax_objects.artists[0].set_radius(tx_radius)
+    # ***************************************
+    # Add multiple circles for demonstration
+    circle = plt.Circle(center[0:2], radius=tx_radius, color='b', alpha=0.3)
+    ax_objects.add_artist(circle)
+    # ***************************************
     dx, dy = action_to_arrow(action)
 
     if Config_Flags.get('SingleArrow'):
