@@ -189,12 +189,12 @@ def update_axes(ax_objects, prev_cell, cell_source, cell_destination, neighbor_r
     tx_radius = power_to_radius(tx_power)
     # ***************************************
     # Keep single circle for demonstration
-    # ax_objects.artists[0].set_center(center[0:2])
-    # ax_objects.artists[0].set_radius(tx_radius)
+    ax_objects.artists[0].set_center(center[0:2])
+    ax_objects.artists[0].set_radius(tx_radius)
     # ***************************************
     # Add multiple circles for demonstration
-    circle = plt.Circle(center[0:2], radius=tx_radius, color='b', alpha=0.3)
-    ax_objects.add_artist(circle)
+    # circle = plt.Circle(center[0:2], radius=tx_radius, color='b', alpha=0.3)
+    # ax_objects.add_artist(circle)
     # ***************************************
     dx, dy = action_to_arrow(action)
 
