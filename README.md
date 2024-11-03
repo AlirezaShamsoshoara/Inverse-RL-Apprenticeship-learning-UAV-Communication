@@ -2,7 +2,7 @@
 
 This project implements a suite of Reinforcement Learning (RL) and Inverse Reinforcement Learning (IRL) methods for UAV communication, including Behavioral Cloning, Q-learning, Deep RL, and other learning policies. The repository explores various RL algorithms for autonomous navigation and decision-making in UAVs.
 
-![Alt Text](https://github.com/AlirezaShamsoshoara/Inverse-RL-Apprenticeship-learning-UAV-Communication/blob/main/images/datacollection.gif)
+![Alt Text](https://github.com/AlirezaShamsoshoara/Inverse-RL-Apprenticeship-learning-UAV-Communication/blob/main/images/demo_gif.gif)
 
 ## 📄 Paper
 You can find the paper for this repository at [Elsevier](https://www.sciencedirect.com/science/article/pii/S1389128624006212) or [Arxiv](https://arxiv.org/pdf/2306.10071).
