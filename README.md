@@ -2,6 +2,8 @@
 
 This project implements a suite of Reinforcement Learning (RL) and Inverse Reinforcement Learning (IRL) methods for UAV communication, including Behavioral Cloning, Q-learning, Deep RL, and other learning policies. The repository explores various RL algorithms for autonomous navigation and decision-making in UAVs.
 
+![Alt Text](https://github.com/AlirezaShamsoshoara/Inverse-RL-Apprenticeship-learning-UAV-Communication/blob/main/images/datacollection.gif)
+
 ## 📄 Paper
 You can find the paper for this repository at [Elsevier](https://www.sciencedirect.com/science/article/pii/S1389128624006212) or [Arxiv](https://arxiv.org/pdf/2306.10071).
 
@@ -9,7 +11,7 @@ You can find the paper for this repository at [Elsevier](https://www.sciencedire
 This paper investigates an interference-aware joint path planning and power allocation mechanism for a cellular-connected unmanned aerial vehicle (UAV) in a sparse suburban environment. The UAV’s goal is to fly from an initial point and reach a destination point by moving along the cells to guarantee the required quality of service (QoS). In particular, the UAV aims to maximize its uplink throughput and minimize interference to the ground user equipment (UEs) connected to neighboring cellular base stations (BSs), considering both the shortest path and limitations on flight resources. Expert knowledge is used to experience the scenario and define the desired behavior for the sake of the agent (i.e., UAV) training. To solve the problem, an apprenticeship learning method is utilized via inverse reinforcement learning (IRL) based on both Q-learning and deep reinforcement learning (DRL). The performance of this method is compared to learning from a demonstration technique called behavioral cloning (BC) using a supervised learning approach. Simulation and numerical results show that the proposed approach can achieve expert-level performance. We also demonstrate that, unlike the BC technique, the performance of our proposed approach does not degrade in unseen situations.
 
 ### 🎥 Demo
-Video below shows a short demo for the different algorithms that we tried for the paper. It also shows the designed simulation environment that used for this project.
+The video below shows a short demo of the different algorithms we tried for the paper. It also shows the simulation environment that was designed for this project.
 [![Alt text](images/ytube_ss.png)](https://youtu.be/FGAlHaTQ_nc?si=yr4_1zYdxwuacskm "Sample video")
 
 ## 📑 Table of Contents
@@ -108,6 +110,22 @@ Each Python file represents a distinct part of the project. Here are some exampl
        python randompolicy.py
 
 Make sure to configure the desired mode and parameters in `config.py` before running these scripts.
+
+## 🔖 Citation
+
+If you find this work useful, please cite our paper as follows:
+<br />
+```
+@article{shamsoshoara2024joint,
+  title={Joint path planning and power allocation of a cellular-connected uav using apprenticeship learning via deep inverse reinforcement learning},
+  author={Shamsoshoara, Alireza and Lotfi, Fatemeh and Mousavi, Sajad and Afghah, Fatemeh and G{\"u}ven{\c{c}}, {\.I}smail},
+  journal={Computer Networks},
+  volume={254},
+  pages={110789},
+  year={2024},
+  publisher={Elsevier}
+}
+```
 
 ## 📜 License
 
