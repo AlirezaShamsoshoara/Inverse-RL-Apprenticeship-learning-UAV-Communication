@@ -2,12 +2,23 @@
 
 This project implements a suite of Reinforcement Learning (RL) and Inverse Reinforcement Learning (IRL) methods for UAV communication, including Behavioral Cloning, Q-learning, Deep RL, and other learning policies. The repository explores various RL algorithms for autonomous navigation and decision-making in UAVs.
 
+## 📄 Paper
+You can find the paper for this repository at [Elsevier](https://www.sciencedirect.com/science/article/pii/S1389128624006212) or [Arxiv](https://arxiv.org/pdf/2306.10071).
+
+### Abstract
+This paper investigates an interference-aware joint path planning and power allocation mechanism for a cellular-connected unmanned aerial vehicle (UAV) in a sparse suburban environment. The UAV’s goal is to fly from an initial point and reach a destination point by moving along the cells to guarantee the required quality of service (QoS). In particular, the UAV aims to maximize its uplink throughput and minimize interference to the ground user equipment (UEs) connected to neighboring cellular base stations (BSs), considering both the shortest path and limitations on flight resources. Expert knowledge is used to experience the scenario and define the desired behavior for the sake of the agent (i.e., UAV) training. To solve the problem, an apprenticeship learning method is utilized via inverse reinforcement learning (IRL) based on both Q-learning and deep reinforcement learning (DRL). The performance of this method is compared to learning from a demonstration technique called behavioral cloning (BC) using a supervised learning approach. Simulation and numerical results show that the proposed approach can achieve expert-level performance. We also demonstrate that, unlike the BC technique, the performance of our proposed approach does not degrade in unseen situations.
+
+### 🎥 Demo
+Video below shows a short demo for the different algorithms that we tried for the paper. It also shows the designed simulation environment that used for this project.
+[![Alt text](images/ytube_ss.png)](https://youtu.be/FGAlHaTQ_nc?si=yr4_1zYdxwuacskm "Sample video")
+
 ## 📑 Table of Contents
 - Requirements
 - Installation
 - Project Structure
 - Configuration
 - Usage
+- Cite
 - License
 
 ## 📦 Requirements
