@@ -20,7 +20,7 @@ The video below shows a short demo of the different algorithms we tried for the 
 - Project Structure
 - Configuration
 - Usage
-- Cite
+- Citation
 - License
 
 ## 📦 Requirements
